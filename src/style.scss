@@ -1,0 +1,24 @@
+$font-stack:    Helvetica, sans-serif;
+$primary-color: #333;
+
+body {
+  font: 100% $font-stack;
+  color: $primary-color;
+}
+
+.item {
+  width: 200px;
+  height: 200px;
+  background-color: grey;
+  position: absolute;
+}
+
+.connector {
+  position: relative;
+  top:50px;
+  border: 1px solid black;
+  width: 30px;
+  height: 30px;
+  background-color:white;
+  z-index: 2;
+}
