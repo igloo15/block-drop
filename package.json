@@ -1,7 +1,7 @@
 {
-  "name": "@igloo15/basic-typescript-lib",
+  "name": "@igloo15/block-drop",
   "oldVersion": "0.2.0-dev.7",
-  "version": "0.2.0-dev.12",
+  "version": "0.2.0-dev.1",
   "description": "basic typescript lib",
   "main": "dist/index.js",
   "scripts": {
@@ -68,7 +68,7 @@
   },
   "readme": "ERROR: No README data found!",
   "_id": "@igloo15/basic-typescript-lib@0.2.0-dev.7",
-  "date": "Fri Sep 04 2020",
+  "date": "Tue Oct 06 2020",
   "dependencies": {
     "strongly-typed-events": "^1.6.19"
   }

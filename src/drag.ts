@@ -1,11 +1,12 @@
-import { listenWindow } from "./utils";
+import { BlockPoint } from "./models";
+import { listenEvent, listenWindow } from "./utils";
 
 /* eslint-disable no-unused-vars */
 export class Drag {
 
-    pointerStart: [number, number] | null;
-    el: HTMLElement;
-    destroy: () => void;
+    private _pointerStart: BlockPoint | null;
+    private _el: HTMLElement;
+    public destroy: () => void;
 
     constructor(
         el: HTMLElement,
@@ -13,43 +14,41 @@ export class Drag {
         private onStart = (_e: PointerEvent) => {},
         private onDrag = (_e: PointerEvent) => {}
     ) {
-        this.pointerStart = null;
-        this.el = el;
-
-        this.el.style.touchAction = 'none';
-        this.el.addEventListener('pointerdown', this.down.bind(this));
-
+        this._pointerStart = null;
+        this._el = el;
+        this._el.style.touchAction = 'none';
+        const destroyDown = listenEvent(this._el, 'pointerdown', this.down.bind(this));
         const destroyMove = listenWindow('pointermove', this.move.bind(this));
         const destroyUp = listenWindow('pointerup', this.up.bind(this));
 
-        this.destroy = () => { destroyMove(); destroyUp(); }
+        this.destroy = () => { destroyMove(); destroyUp(); destroyDown(); }
     }
 
     down(e: PointerEvent) {
         if ((e.pointerType === 'mouse') && (e.button !== 0)) return;
         e.stopPropagation();
-        this.pointerStart = [e.pageX, e.pageY]
+        this._pointerStart = { x: e.pageX, y: e.pageY };
 
         this.onStart(e);
     }
 
     move(e: PointerEvent) {
-        if (!this.pointerStart) return;
+        if (!this._pointerStart) return;
         e.preventDefault();
 
         const [x, y] = [e.pageX, e.pageY]
 
-        const delta = [x - this.pointerStart[0], y - this.pointerStart[1]];
+        const delta = [x - this._pointerStart.x, y - this._pointerStart.y];
 
-        const zoom = this.el.getBoundingClientRect().width / this.el.offsetWidth;
+        const zoom = this._el.getBoundingClientRect().width / this._el.offsetWidth;
 
         this.onTranslate(delta[0] / zoom, delta[1] / zoom, e);
     }
 
     up(e: PointerEvent) {
-        if (!this.pointerStart) return;
+        if (!this._pointerStart) return;
         
-        this.pointerStart = null;
+        this._pointerStart = null;
         this.onDrag(e);
     }
 }
