@@ -1,8 +1,8 @@
 {
   "name": "@igloo15/block-drop",
-  "oldVersion": "0.2.0-dev.8",
-  "version": "0.2.0-dev.2",
-  "description": "basic typescript lib",
+  "oldVersion": "0.2.0-dev.2",
+  "version": "0.2.0-dev.5",
+  "description": "Create a node diagram with this easy to use library that can be layered on top of existing web applications",
   "main": "dist/index.js",
   "scripts": {
     "update:version:all": "npm-run-all update:version:pkg update:version:file",
@@ -13,7 +13,7 @@
     "test": "npm-run-all test:*",
     "test:lint": "npm run lint",
     "git:tag": "cross-var git tag v$npm_package_version",
-    "serve": "webpack-dev-server --open",
+    "serve": "webpack serve --config ./webpack.config.js",
     "docs": "typedoc --theme markdown --readme README.md --out docs/api src",
     "pack": "npm pack",
     "build": "npm run build:webpack",

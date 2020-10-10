@@ -140,6 +140,7 @@ export class Connection {
         this.unsubscribe();
         this._endConnector.complete(this);
         this._startConnector.complete(this);
+        this.update();
     }
 
     public update() {
