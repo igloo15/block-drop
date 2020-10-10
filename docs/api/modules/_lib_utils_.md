@@ -1,15 +1,15 @@
 **[@igloo15/block-drop](../README.md)**
 
-> [Globals](../globals.md) / "utils"
+> [Globals](../globals.md) / "lib/utils"
 
-# Module: "utils"
+# Module: "lib/utils"
 
 ## Index
 
 ### Functions
 
-* [listenEvent](_utils_.md#listenevent)
-* [listenWindow](_utils_.md#listenwindow)
+* [listenEvent](_lib_utils_.md#listenevent)
+* [listenWindow](_lib_utils_.md#listenwindow)
 
 ## Functions
 
@@ -17,7 +17,7 @@
 
 ▸ **listenEvent**\<K>(`el`: HTMLElement, `event`: K, `handler`: (e: HTMLElementEventMap[K]) => void): (Anonymous function)
 
-*Defined in [utils.ts:11](https://github.com/igloo15/block-drop/blob/cf013cb/src/utils.ts#L11)*
+*Defined in [lib/utils.ts:11](https://github.com/igloo15/block-drop/blob/8f4b6bb/src/lib/utils.ts#L11)*
 
 #### Type parameters:
 
@@ -41,7 +41,7 @@ ___
 
 ▸ **listenWindow**\<K>(`event`: K, `handler`: (e: WindowEventMap[K]) => void): (Anonymous function)
 
-*Defined in [utils.ts:2](https://github.com/igloo15/block-drop/blob/cf013cb/src/utils.ts#L2)*
+*Defined in [lib/utils.ts:2](https://github.com/igloo15/block-drop/blob/8f4b6bb/src/lib/utils.ts#L2)*
 
 #### Type parameters:
 

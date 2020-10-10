@@ -25,7 +25,7 @@
 
 • `Const` **area**: HTMLElement = \<HTMLElement>document.querySelector('#block-area')
 
-*Defined in [test.ts:4](https://github.com/igloo15/block-drop/blob/cf013cb/src/test.ts#L4)*
+*Defined in [test.ts:4](https://github.com/igloo15/block-drop/blob/8f4b6bb/src/test.ts#L4)*
 
 ___
 
@@ -33,7 +33,7 @@ ___
 
 • `Const` **areaParent**: HTMLElement = \<HTMLElement>document.querySelector('#block-area-container')
 
-*Defined in [test.ts:6](https://github.com/igloo15/block-drop/blob/cf013cb/src/test.ts#L6)*
+*Defined in [test.ts:6](https://github.com/igloo15/block-drop/blob/8f4b6bb/src/test.ts#L6)*
 
 ___
 
@@ -41,7 +41,7 @@ ___
 
 • `Const` **conn1**: HTMLElement = \<HTMLElement>document.querySelector('.input')
 
-*Defined in [test.ts:12](https://github.com/igloo15/block-drop/blob/cf013cb/src/test.ts#L12)*
+*Defined in [test.ts:12](https://github.com/igloo15/block-drop/blob/8f4b6bb/src/test.ts#L12)*
 
 ___
 
@@ -49,7 +49,7 @@ ___
 
 • `Const` **conn2**: HTMLElement = \<HTMLElement>document.querySelector('.connector')
 
-*Defined in [test.ts:20](https://github.com/igloo15/block-drop/blob/cf013cb/src/test.ts#L20)*
+*Defined in [test.ts:20](https://github.com/igloo15/block-drop/blob/8f4b6bb/src/test.ts#L20)*
 
 ___
 
@@ -57,7 +57,7 @@ ___
 
 • `Const` **item1**: HTMLElement = \<HTMLElement>document.querySelector('#item-1')
 
-*Defined in [test.ts:10](https://github.com/igloo15/block-drop/blob/cf013cb/src/test.ts#L10)*
+*Defined in [test.ts:10](https://github.com/igloo15/block-drop/blob/8f4b6bb/src/test.ts#L10)*
 
 ___
 
@@ -65,15 +65,15 @@ ___
 
 • `Const` **item2**: HTMLElement = \<HTMLElement>document.querySelector('#item-2')
 
-*Defined in [test.ts:18](https://github.com/igloo15/block-drop/blob/cf013cb/src/test.ts#L18)*
+*Defined in [test.ts:18](https://github.com/igloo15/block-drop/blob/8f4b6bb/src/test.ts#L18)*
 
 ___
 
 ### newArea
 
-• `Const` **newArea**: [BlockArea](../classes/_blockarea_.blockarea.md) = new BlockArea(area, areaParent, { lockToArea: true, zoomInterval: 0.02 })
+• `Const` **newArea**: [BlockArea](../classes/_lib_blockarea_.blockarea.md) = new BlockArea(area, areaParent, { lockToArea: true, zoomInterval: 0.02 })
 
-*Defined in [test.ts:8](https://github.com/igloo15/block-drop/blob/cf013cb/src/test.ts#L8)*
+*Defined in [test.ts:8](https://github.com/igloo15/block-drop/blob/8f4b6bb/src/test.ts#L8)*
 
 ___
 
@@ -81,20 +81,20 @@ ___
 
 • `Const` **newConnector**: HTMLDivElement = document.createElement('div')
 
-*Defined in [test.ts:24](https://github.com/igloo15/block-drop/blob/cf013cb/src/test.ts#L24)*
+*Defined in [test.ts:24](https://github.com/igloo15/block-drop/blob/8f4b6bb/src/test.ts#L24)*
 
 ___
 
 ### newNode1
 
-• `Const` **newNode1**: [Block](../classes/_block_.block.md) = new Block('item1', item1).addInputElements(newArea, [conn1])
+• `Const` **newNode1**: [Block](../classes/_lib_block_.block.md) = new Block('item1', item1).addInputElements(newArea, [conn1])
 
-*Defined in [test.ts:14](https://github.com/igloo15/block-drop/blob/cf013cb/src/test.ts#L14)*
+*Defined in [test.ts:14](https://github.com/igloo15/block-drop/blob/8f4b6bb/src/test.ts#L14)*
 
 ___
 
 ### newNode2
 
-• `Const` **newNode2**: [Block](../classes/_block_.block.md) = new Block('item2', item2).addOutputElements(newArea, [conn2])
+• `Const` **newNode2**: [Block](../classes/_lib_block_.block.md) = new Block('item2', item2).addOutputElements(newArea, [conn2])
 
-*Defined in [test.ts:22](https://github.com/igloo15/block-drop/blob/cf013cb/src/test.ts#L22)*
+*Defined in [test.ts:22](https://github.com/igloo15/block-drop/blob/8f4b6bb/src/test.ts#L22)*

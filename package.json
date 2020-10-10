@@ -14,7 +14,7 @@
     "test:lint": "npm run lint",
     "git:tag": "cross-var git tag v$npm_package_version",
     "serve": "webpack-dev-server --open",
-    "docs": "typedoc --theme markdown --readme docs/README.md --out docs/api src",
+    "docs": "typedoc --theme markdown --readme README.md --out docs/api src",
     "pack": "npm pack",
     "build": "npm run build:webpack",
     "build:webpack": "webpack",
