@@ -20,6 +20,7 @@ for(var i = 0; i < mg.length; i++) {
     const oldVersion = pkg.get("version");
     if(oldVersion !== version) {
         console.log(`Updating File: ${mg[i]}`);
+        pkg.set("oldVersion", oldVersion);
         pkg.set("version", version);
         pkg.set("date", dateString);
         console.log(`Updating: ${oldVersion} -> ${version}`);
