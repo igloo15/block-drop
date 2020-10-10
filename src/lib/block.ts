@@ -1,6 +1,6 @@
 import { Drag } from './drag';
 import { BlockPoint } from './models';
-import { Connector } from './connector';
+import { Connector, ConnectorOptions } from './connector';
 import { BlockArea } from './blockarea';
 import { listenEvent } from './utils';
 import { EventDispatcher } from 'strongly-typed-events';
@@ -19,8 +19,12 @@ export class Block {
     private _destroyClick: () => void;
     private _destroyDblClick: () => void;
     private _data: any;
+    private _connectorIndex = 0;
 
-    constructor(element: HTMLElement, extraData?: any) {
+    public id: string;
+
+    constructor(id: string, element: HTMLElement, extraData?: any) {
+        this.id = id;
         this._el = element;
         this._data = extraData;
         this._x = this._el.getBoundingClientRect().x;
@@ -39,12 +43,12 @@ export class Block {
         this._mouseDblClick.dispatch(this, {x: e.x, y: e.y});
     }
 
-    private onSelect(e: MouseEvent) {
+    private onSelect() {
         this._start.x = this._x;
         this._start.y = this._y;
     }
 
-    private onTranslate(x: number, y: number, e: PointerEvent | null) {
+    private onTranslate(x: number, y: number) {
         this._x = this._start.x + x;
         this._y = this._start.y + y;
 
@@ -74,7 +78,7 @@ export class Block {
     }
 
     public move(x: number, y: number) {
-        this.onTranslate(x, y, null);
+        this.onTranslate(x, y);
     }
 
     public getPosition(): BlockPoint {
@@ -100,29 +104,45 @@ export class Block {
         return this.allConnectors.map((value: Connector) => value.connections).reduce((accumulator, value) => accumulator.concat(value));
     }
 
-    public addInputs(area: BlockArea, inputs: HTMLElement[]) {
+    public addInput(connector: Connector): Block {
+        connector.setBlockParent(this);
+        this._inputs.push(connector);
+        return this;
+    }
+
+    public addInputElements(area: BlockArea, inputs: HTMLElement[], options?: ConnectorOptions): Block {
+        const tempOptions = {...options, ...{ isInput: true}};
         for(const elem of inputs) {
-            this._inputs.push(new Connector(elem, this, area, true));
+            this.addInput(new Connector(`${this.id}-${this._connectorIndex}`, elem, area, tempOptions));
+            this._connectorIndex++;
         }
 
         return this;
     }
 
-    public addInputStrings(area: BlockArea, inputs: string[]) {
-        this.addInputs(area, inputs.map(val => <HTMLElement>this._el.querySelector(val)));
+    public addInputStrings(area: BlockArea, inputs: string[], options?: ConnectorOptions): Block {
+        this.addInputElements(area, inputs.map(val => <HTMLElement>this._el.querySelector(val)), options);
         return this;
     }
 
-    public addOutputs(area: BlockArea, outputs: HTMLElement[]) {
+    public addOutput(connector: Connector): Block {
+        connector.setBlockParent(this);
+        this._outputs.push(connector);
+        return this;
+    }
+
+    public addOutputElements(area: BlockArea, outputs: HTMLElement[], options?: ConnectorOptions): Block {
+        const tempOptions = {...options, ...{ isInput: false}};
         for(const elem of outputs) {
-            this._outputs.push(new Connector(elem, this, area, false));
+            this.addOutput(new Connector(`${this.id}-${this._connectorIndex}`, elem, area, tempOptions));
+            this._connectorIndex++;
         }
 
         return this;
     }
 
-    public addOutputStrings(area: BlockArea, outputs: string[]) {
-        this.addOutputs(area, outputs.map(val => <HTMLElement>this._el.querySelector(val)));
+    public addOutputStrings(area: BlockArea, outputs: string[], options?: ConnectorOptions): Block {
+        this.addOutputElements(area, outputs.map(val => <HTMLElement>this._el.querySelector(val)), options);
         return this;
     }
 

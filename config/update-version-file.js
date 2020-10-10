@@ -7,7 +7,7 @@ if (!oldVersion) {
 }
 
 const options = {
-  files: "src/version.ts",
+  files: "src/lib/version.ts",
   from: oldVersion,
   to: version
 };

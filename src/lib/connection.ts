@@ -12,6 +12,8 @@ export class Connection {
     private _endConnector: Connector | null = null;
     private _moveSubscription!: null | (() => void);
     private _upSubscription!: null | (() => void);
+    private _previousStartPos: BlockPoint = { x: 0, y: 0};
+    private _previousEndPos: BlockPoint = { x: 0, y: 0};
 
     constructor(parent: BlockArea, startConnector: Connector, initialPoint: BlockPoint) {
         this._parent = parent;
@@ -24,7 +26,8 @@ export class Connection {
         this._upSubscription = this._parent.mouseUp.subscribe(() => {
             this.delete();
         });
-        this.renderConnection(initialPoint.x, initialPoint.y, this.getStartPosition().x, this.getStartPosition().y);
+        const startPos = this.getStartPosition();
+        this.renderConnection(initialPoint.x, initialPoint.y, startPos.x, startPos.y);
     }
 
     private updateConnection(el: SVGPathElement, d: string) {
@@ -43,17 +46,41 @@ export class Connection {
     }
 
     private getStartPosition(): BlockPoint {
-        return this._startConnector.position;
+        const startPos = this._startConnector.position;
+        if (startPos) {
+            this._previousStartPos = startPos;
+            return startPos;
+        }
+        return this._previousStartPos;
     }
 
-    private getEndPosition(): BlockPoint | undefined {
-        return this._endConnector?.position;
+    private getEndPosition(): BlockPoint {
+        const endPos = this._endConnector?.position;
+        if (endPos) {
+            this._previousEndPos = endPos;
+            return endPos;
+        }
+        return this._previousEndPos;
     }
 
     private renderPath(points: number[], curvature: number) {
         const [x1, y1, x2, y2] = points;
-        const hx1 = x1 + Math.abs(x2 - x1) * curvature;
-        const hx2 = x2 - Math.abs(x2 - x1) * curvature;
+
+        //endpoint
+        let hx1 = -1;
+        if (!this._endConnector?.options.alternateConnCurve) {
+            hx1 = x1 + Math.abs(x2 - x1) * curvature;
+        } else {
+            hx1 = x1 - Math.abs(x2 - x1) * curvature;
+        }
+        
+        //startpoint
+        let hx2 = -1;
+        if (!this._startConnector.options.alternateConnCurve) {
+            hx2 = x2 - Math.abs(x2 - x1) * curvature;
+        } else {
+            hx2 = x2 + Math.abs(x2 - x1) * curvature;
+        }
         
         let pathString = `M ${x1} ${y1} C ${hx1} ${y1} ${hx2} ${y2} ${x2} ${y2}`;
         pathString = this._parent.options.renderFunction(pathString, x1, y1, x2, y2, hx1, hx2);
@@ -82,7 +109,7 @@ export class Connection {
         this.updateConnection(this._path, d);
     }
 
-    public get startBlock(): Block {
+    public get startBlock(): Block | null {
         return this._startConnector.block;
     }
 

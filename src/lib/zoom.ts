@@ -1,5 +1,6 @@
 import { listenEvent } from "./utils";
 
+// eslint-disable-next-line no-unused-vars
 export type ZoomFunction = (delta: number, x: number, y: number) => void;
 
 export class Zoom {

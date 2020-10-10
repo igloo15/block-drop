@@ -1,8 +1,5 @@
-import './style.scss';
-import { Block,  BlockArea } from './index';
-import { Connection } from "./connection";
-
-console.log("Hello World");
+import './test.scss';
+import { Block,  BlockArea, Connection } from './lib/index';
 
 const area = <HTMLElement>document.querySelector('#block-area');
 
@@ -14,7 +11,7 @@ const item1 = <HTMLElement>document.querySelector('#item-1');
 
 const conn1 = <HTMLElement>document.querySelector('.input');
 
-const newNode1 = new Block(item1).addInputs(newArea, [conn1]);
+const newNode1 = new Block('item1', item1).addInputElements(newArea, [conn1]);
 
 console.log(item1);
 
@@ -22,7 +19,7 @@ const item2 = <HTMLElement>document.querySelector('#item-2');
 
 const conn2 = <HTMLElement>document.querySelector('.connector');
 
-const newNode2 = new Block(item2).addOutputs(newArea, [conn2]);
+const newNode2 = new Block('item2', item2).addOutputElements(newArea, [conn2]);
 
 const newConnector = document.createElement('div');
 
@@ -57,7 +54,7 @@ setTimeout(() => {
     newConnector.classList.add('connector');
     newConnector.style.top = '90px';
     item1.appendChild(newConnector);
-    newNode1.addInputs(newArea, [newConnector]);
+    newNode1.addInputElements(newArea, [newConnector], {alternateConnCurve: true, isInput: true});
 
     //newArea.resetZoom();
     //newArea.resetDrag();

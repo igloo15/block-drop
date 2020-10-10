@@ -4,30 +4,38 @@ import { Connection } from "./connection";
 import { BlockPoint } from "./models";
 import { listenEvent } from "./utils";
 
+export interface ConnectorOptions {
+    isInput: boolean;
+    alternateConnCurve?: boolean;
+}
+
 export class Connector {
 
     private _area: BlockArea;
-    private _parent: Block;
+    private _parent: Block | null = null;
     private _el: HTMLElement;
-    private _isInput: boolean;
+    private _options: ConnectorOptions = {
+        isInput: false,
+        alternateConnCurve: false
+    };
     private _connections: Connection[] = [];
     private _data: any;
     private _destroyDownSubscription: () => void;
     private _destroyUpSubscription: () => void;
 
-    public activeConnection: Connection | null = null;
+    public id: string;
 
-    constructor(element: HTMLElement, block: Block, area: BlockArea, isInput: boolean, extraData?: any) {
+    constructor(id: string, element: HTMLElement, area: BlockArea, options: ConnectorOptions, extraData?: any) {
+        this.id = id;
         this._area = area;
         this._el = element;
-        this._parent = block;
-        this._isInput = isInput;
+        this._options = {...this._options, ...options};
         this._data = extraData;
         
         this._destroyDownSubscription = listenEvent(this._el, 'pointerdown', e => {
             e.preventDefault();
             e.stopPropagation();
-            if (!this._isInput) {
+            if (!this._options.isInput) {
                 this.startConnection(e);
             }
         });
@@ -35,7 +43,7 @@ export class Connector {
         this._destroyUpSubscription = listenEvent(this._el, 'pointerup', e => {
             e.preventDefault();
             e.stopPropagation();
-            if (this._isInput) {
+            if (this._options.isInput) {
                 this._area.endConnection(this);
             } else {
                 this._area.cancelConnection();
@@ -44,20 +52,27 @@ export class Connector {
         
     }
 
-    public get position(): BlockPoint {
-        const parentPos = this._parent.getPosition();
-        return {
-            x: parentPos.x + this._el.offsetLeft + this._el.offsetWidth / 2,
-            y: parentPos.y + this._el.offsetTop + this._el.offsetHeight / 2
+    public get position(): BlockPoint | undefined {
+        const parentPos = this._parent?.getPosition();
+        if (parentPos) {
+            return {
+                x: parentPos.x + this._el.offsetLeft + this._el.offsetWidth / 2,
+                y: parentPos.y + this._el.offsetTop + this._el.offsetHeight / 2
+            }
         }
+        return parentPos;
     }
 
-    public get block(): Block {
+    public get block(): Block | null {
         return this._parent;
     }
 
     public get connections(): Connection[] {
         return this._connections;
+    }
+
+    public get options(): ConnectorOptions {
+        return this._options;
     }
 
     private startConnection(mouseEvent: PointerEvent) {
@@ -69,9 +84,12 @@ export class Connector {
         return this._data as T;
     }
 
+    public setBlockParent(block: Block) {
+        this._parent = block;
+    }
+
     public complete(conn: Connection) {
         this._connections.push(conn);
-        this.activeConnection = null;
     }
 
     public update() {

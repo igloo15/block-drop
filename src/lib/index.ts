@@ -1,3 +1,4 @@
+import './style.scss';
 export * from './version';
 export * from './block';
 export * from './blockarea';

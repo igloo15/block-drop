@@ -19,7 +19,6 @@ export class BlockArea {
     private _drag: Drag;
     private _transform: Transform = { k: 1, x: 0, y: 0 };
     private _options: BlockAreaOptions;
-    private _validators: ConnectionValidator[] = [];
 
     private _mouseMove = new EventDispatcher<BlockArea, BlockPoint>();
     private _mouseUp = new EventDispatcher<BlockArea, BlockPoint>();
@@ -29,8 +28,7 @@ export class BlockArea {
     constructor(el: HTMLElement, parentEl: HTMLElement, options?: IBlockAreaOptions) {
         this.el = el;
         this.parentEl = parentEl;
-        const tempOptions = options as unknown;
-        this._options = {...new BlockAreaOptions(), ...(tempOptions as BlockAreaOptions)};
+        this._options = new BlockAreaOptions(options);
         this.el.style.width = `${this._options.widthMax}px`;
         this.el.style.height = `${this._options.heightMax}px`;
         this.el.style.transformOrigin = '0 0';
@@ -77,7 +75,7 @@ export class BlockArea {
         this._mouseUp.dispatch(this, {x: e.x, y: e.y});
     }
 
-    private onSelect(e: MouseEvent) {
+    private onSelect() {
         this._start = { x: this._transform.x, y: this._transform.y };
     }
 
@@ -128,7 +126,7 @@ export class BlockArea {
     }
 
     private validConnection(start: Connector, end: Connector): { valid: boolean, validator?: ConnectionValidator } {
-        for(const validator of this._validators) {
+        for(const validator of this._options.validators) {
             if(!validator.execute(start, end)) {
                 return { valid: false, validator };
             }
