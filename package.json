@@ -1,7 +1,7 @@
 {
   "name": "@igloo15/block-drop",
-  "oldVersion": "0.2.0-dev.2",
-  "version": "0.2.0-dev.5",
+  "oldVersion": "0.2.0-dev.5",
+  "version": "0.2.0-dev.6",
   "description": "Create a node diagram with this easy to use library that can be layered on top of existing web applications",
   "main": "dist/index.js",
   "scripts": {
@@ -26,11 +26,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/igloo15/basic-typescript-lib.git"
+    "url": "git+https://github.com/igloo15/block-drop.git"
   },
-  "homepage": "https://github.com/igloo15/basic-typescript-lib#readme",
+  "homepage": "https://github.com/igloo15/block-drop#readme",
   "bugs": {
-    "url": "https://github.com/igloo15/basic-typescript-lib/issues"
+    "url": "https://github.com/igloo15/block-drop/issues"
   },
   "author": {
     "name": "igloo15"
