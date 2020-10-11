@@ -111,7 +111,7 @@ const block2 = <HTMLElement>document.querySelector('#block-2');
 
 const conn2 = <HTMLElement>document.querySelector('.output');
 
-const newNode = new Block('block-id-2', block).addInputElements(newArea, [conn1]);
+const newNode = new Block('block-id-2', block).addOutputElements(newArea, [conn1]);
 ```
 
 ## Docs
