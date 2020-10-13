@@ -29,6 +29,9 @@ export class BlockArea {
         this.el = el;
         this.parentEl = parentEl;
         this._options = new BlockAreaOptions(options);
+        if (this._options.gridBackground) {
+            this.el.classList.add('grid');
+        }
         this.el.style.width = `${this._options.widthMax}px`;
         this.el.style.height = `${this._options.heightMax}px`;
         this.el.style.transformOrigin = '0 0';

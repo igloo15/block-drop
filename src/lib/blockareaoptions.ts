@@ -43,11 +43,13 @@ export interface IBlockAreaOptions {
 
     widthMax?: number;
     heightMax?: number;
+    gridBackground?: boolean;
 
     lockToArea?: boolean;
 
     pathCurvature?: number;
     patchStyleClass?: string;
+
 
     renderFunction?: ConnectionRenderFunction;
     validators?: ConnectionValidator[];
@@ -60,12 +62,13 @@ export class BlockAreaOptions {
 
     public widthMax = 4000;
     public heightMax = 4000;
+    public gridBackground = true;
 
     public lockToArea = false;
 
     public pathCurvature = 0.4;
     public pathStyleClass = 'main-path';
-
+    
     public renderFunction: ConnectionRenderFunction = (value: string) => value;
 
     public validators: ConnectionValidator[] = [];
@@ -77,6 +80,7 @@ export class BlockAreaOptions {
             this.zoomInterval = options.zoomInterval ?? this.zoomInterval;
             this.widthMax = options.widthMax ?? this.widthMax;
             this.heightMax = options.heightMax ?? this.heightMax;
+            this.gridBackground = options.gridBackground ?? this.gridBackground;
             this.lockToArea = options.lockToArea ?? this.lockToArea;
             this.pathCurvature = options.pathCurvature ?? this.pathCurvature;
             this.pathStyleClass = options.patchStyleClass ?? this.pathStyleClass;
