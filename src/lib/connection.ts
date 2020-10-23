@@ -1,6 +1,7 @@
 import { Block } from "./block";
 import { BlockArea } from "./blockarea";
 import { Connector } from "./connector";
+import { ISubscription } from "./events";
 import { BlockPoint } from "./models";
 
 export class Connection {
@@ -10,8 +11,8 @@ export class Connection {
     private _parent: BlockArea;
     private _startConnector: Connector;
     private _endConnector: Connector | null = null;
-    private _moveSubscription!: null | (() => void);
-    private _upSubscription!: null | (() => void);
+    private _moveSubscription!: ISubscription | null;
+    private _upSubscription!: ISubscription | null;
     private _previousStartPos: BlockPoint = { x: 0, y: 0};
     private _previousEndPos: BlockPoint = { x: 0, y: 0};
 
@@ -36,11 +37,11 @@ export class Connection {
 
     private unsubscribe() {
         if (this._moveSubscription) {
-            this._moveSubscription();
+            this._moveSubscription.unsubscribe();
             this._moveSubscription = null;
         }
         if (this._upSubscription) {
-            this._upSubscription();
+            this._upSubscription.unsubscribe();
             this._upSubscription = null;
         }
     }

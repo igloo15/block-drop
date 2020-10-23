@@ -1,4 +1,3 @@
-import { EventDispatcher, SimpleEventDispatcher } from 'strongly-typed-events';
 import { BlockPoint } from './models';
 import { Connection } from './connection';
 import { Connector } from './connector';
@@ -6,6 +5,7 @@ import { Drag } from './drag';
 import { Zoom } from './zoom';
 import { listenEvent } from './utils';
 import { BlockAreaOptions, ConnectionValidationResult, ConnectionValidator, IBlockAreaOptions, Transform } from './blockareaoptions';
+import { TypedEventOne, TypedEventTwo } from './events';
 
 export class BlockArea {
     
@@ -20,10 +20,10 @@ export class BlockArea {
     private _transform: Transform = { k: 1, x: 0, y: 0 };
     private _options: BlockAreaOptions;
 
-    private _mouseMove = new EventDispatcher<BlockArea, BlockPoint>();
-    private _mouseUp = new EventDispatcher<BlockArea, BlockPoint>();
-    private _connectionValidation = new EventDispatcher<BlockArea, ConnectionValidationResult>();
-    private _connectionCreated = new SimpleEventDispatcher<Connection>();
+    private _mouseMove = new TypedEventTwo<BlockArea, BlockPoint>();
+    private _mouseUp = new TypedEventTwo<BlockArea, BlockPoint>();
+    private _connectionValidation = new TypedEventTwo<BlockArea, ConnectionValidationResult>();
+    private _connectionCreated = new TypedEventOne<Connection>();
     
     constructor(el: HTMLElement, parentEl: HTMLElement, options?: IBlockAreaOptions) {
         this.el = el;
@@ -71,11 +71,11 @@ export class BlockArea {
         const k = this._transform.k;
         
         const mouse = { x: x / k, y: y / k };
-        this._mouseMove.dispatch(this, mouse);
+        this._mouseMove.next(this, mouse);
     }
 
     private pointerUp(e: PointerEvent) {
-        this._mouseUp.dispatch(this, {x: e.x, y: e.y});
+        this._mouseUp.next(this, {x: e.x, y: e.y});
     }
 
     private onSelect() {
@@ -178,9 +178,9 @@ export class BlockArea {
             const result = this.validConnection(startConnector, endConnector);
             if(result.valid) {
                 conn.complete(connector);
-                this._connectionCreated.dispatch(conn);
+                this._connectionCreated.next(conn);
             }
-            this._connectionValidation.dispatch(this, { status: result.valid, validator: result.validator, start: startConnector, end: endConnector});
+            this._connectionValidation.next(this, { status: result.valid, validator: result.validator, start: startConnector, end: endConnector});
         }
     }
 

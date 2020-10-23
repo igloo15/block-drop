@@ -3,8 +3,8 @@ import { BlockPoint } from './models';
 import { Connector, ConnectorOptions } from './connector';
 import { BlockArea } from './blockarea';
 import { listenEvent } from './utils';
-import { EventDispatcher } from 'strongly-typed-events';
 import { Connection } from './connection';
+import { TypedEventTwo } from './events';
 
 export class Block {
     private _el: HTMLElement;
@@ -14,8 +14,8 @@ export class Block {
     private _dragger: Drag;
     private _inputs: Connector[] = [];
     private _outputs: Connector[] = [];
-    private _mouseClick = new EventDispatcher<Block, BlockPoint>();
-    private _mouseDblClick = new EventDispatcher<Block, BlockPoint>();
+    private _mouseClick = new TypedEventTwo<Block, BlockPoint>();
+    private _mouseDblClick = new TypedEventTwo<Block, BlockPoint>();
     private _destroyClick: () => void;
     private _destroyDblClick: () => void;
     private _data: any;
@@ -36,11 +36,11 @@ export class Block {
     }
 
     private onClick(e: MouseEvent) {
-        this._mouseClick.dispatch(this, {x: e.x, y: e.y});
+        this._mouseClick.next(this, {x: e.x, y: e.y});
     }
 
     private onDblClick(e: MouseEvent) {
-        this._mouseDblClick.dispatch(this, {x: e.x, y: e.y});
+        this._mouseDblClick.next(this, {x: e.x, y: e.y});
     }
 
     private onSelect() {
@@ -100,6 +100,14 @@ export class Block {
         return this._inputs.concat(this._outputs);
     }
 
+    public get inputConnections(): Connection[] {
+        return this.inputs.map(value => value.connections).reduce((accumulator, value) => accumulator.concat(value));
+    }
+
+    public get outputConnections(): Connection[] {
+        return this.outputs.map(value => value.connections).reduce((accumulator, value) => accumulator.concat(value));
+    }
+
     public get allConnections(): Connection[] {
         return this.allConnectors.map((value: Connector) => value.connections).reduce((accumulator, value) => accumulator.concat(value));
     }
@@ -146,6 +154,10 @@ export class Block {
         return this;
     }
 
+    public removeConnection(conn: Connection) {
+        conn.delete();
+    }
+
     public delete(removeElement: boolean = false) {
         this._destroyClick();
         this._destroyDblClick();
@@ -156,4 +168,17 @@ export class Block {
             }
         }
     }
+}
+
+export class TypedBlock<T> extends Block {
+    /**
+     * Construct a typed block with a specific type
+     */
+    constructor(id: string, element: HTMLElement, extraData?: T) {
+        super(id, element, extraData);
+    }
+    public get data(): T {
+        return this.getData<T>();
+    }
+
 }

@@ -9,4 +9,5 @@ export * from './drag';
 export * from './zoom';
 export * from './models';
 export * from './utils';
+export * from './events';
 

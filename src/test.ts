@@ -5,7 +5,7 @@ const area = <HTMLElement>document.querySelector('#block-area');
 
 const areaParent = <HTMLElement>document.querySelector('#block-area-container');
 
-const newArea = new BlockArea(area, areaParent, { lockToArea: true, zoomInterval: 0.02 });
+const newArea = new BlockArea(area, areaParent, { lockToArea: true, zoomInterval: 0.02, gridBackground: false });
 
 const item1 = <HTMLElement>document.querySelector('#item-1');
 

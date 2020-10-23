@@ -1,12 +1,14 @@
 import { Block } from "./block";
 import { BlockArea } from "./blockarea";
 import { Connection } from "./connection";
+import { TypedEventOne, TypedEventTwo } from "./events";
 import { BlockPoint } from "./models";
 import { listenEvent } from "./utils";
 
 export interface ConnectorOptions {
     isInput: boolean;
     alternateConnCurve?: boolean;
+    anchorPointOffset?: BlockPoint;
 }
 
 export class Connector {
@@ -16,12 +18,16 @@ export class Connector {
     private _el: HTMLElement;
     private _options: ConnectorOptions = {
         isInput: false,
-        alternateConnCurve: false
+        alternateConnCurve: false,
+        anchorPointOffset: { x: 0, y: 0 }
     };
     private _connections: Connection[] = [];
     private _data: any;
     private _destroyDownSubscription: () => void;
     private _destroyUpSubscription: () => void;
+
+    private _connectionStarted = new TypedEventTwo<Connector, Connection>();
+    private _connectionCompleted = new TypedEventOne<Connection>();
 
     public id: string;
 
@@ -56,8 +62,8 @@ export class Connector {
         const parentPos = this._parent?.getPosition();
         if (parentPos) {
             return {
-                x: parentPos.x + this._el.offsetLeft + this._el.offsetWidth / 2,
-                y: parentPos.y + this._el.offsetTop + this._el.offsetHeight / 2
+                x: parentPos.x + this._el.offsetLeft + (this._el.offsetWidth / 2) + (this._options.anchorPointOffset?.x || 0),
+                y: parentPos.y + this._el.offsetTop + (this._el.offsetHeight / 2) + (this._options.anchorPointOffset?.y || 0)
             }
         }
         return parentPos;
@@ -75,9 +81,18 @@ export class Connector {
         return this._options;
     }
 
+    public get connectionStarted() {
+        return this._connectionStarted.asEvent();
+    }
+
+    public get connectionCompleted() {
+        return this._connectionCompleted.asEvent();
+    }
+
     private startConnection(mouseEvent: PointerEvent) {
         const tempConn = new Connection(this._area, this, mouseEvent);
         this._area.setActiveConnection(tempConn);
+        this._connectionStarted.next(this, tempConn);
     }
 
     public getData<T>(): T {
@@ -90,6 +105,7 @@ export class Connector {
 
     public complete(conn: Connection) {
         this._connections.push(conn);
+        this._connectionCompleted.next(conn);
     }
 
     public update() {
