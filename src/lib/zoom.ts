@@ -1,12 +1,11 @@
 import { listenEvent } from "./utils";
 
-// eslint-disable-next-line no-unused-vars
 export type ZoomFunction = (delta: number, x: number, y: number) => void;
 
 export class Zoom {
     private _el: HTMLElement;
     private _parent: HTMLElement;
-    private _onZoom: Function;
+    private _onZoom: ZoomFunction;
     private _zoomInterval: number;
     public destroy: () => void;
 
@@ -14,7 +13,7 @@ export class Zoom {
         el: HTMLElement, 
         parent: HTMLElement, 
         onZoom: ZoomFunction,
-        zoomInterval: number = 0.1
+        zoomInterval = 0.1
     ) {
         this._parent = parent;
         this._el = el;
@@ -24,9 +23,10 @@ export class Zoom {
         this.destroy = () => { destroyWheel(); };
     }
 
-    mouseWheel(e: WheelEvent) {
+    private mouseWheel(e: WheelEvent) {
         e.preventDefault();
         const rect = this._el.getBoundingClientRect();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const wheelDelta = (e as any).wheelDelta;
         const delta = (wheelDelta ? wheelDelta / 120 : - e.deltaY / 3) * this._zoomInterval;
 

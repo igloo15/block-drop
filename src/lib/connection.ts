@@ -2,9 +2,11 @@ import { Block } from "./block";
 import { BlockArea } from "./blockarea";
 import { Connector } from "./connector";
 import { ISubscription } from "./events";
+import { IBlockDropItem } from "./interfaces";
 import { BlockPoint } from "./models";
+import { uuidv4 } from "./utils";
 
-export class Connection {
+export class Connection implements IBlockDropItem {
 
     private _path!: SVGPathElement;
     private _containerElem!: HTMLElement;
@@ -15,8 +17,10 @@ export class Connection {
     private _upSubscription!: ISubscription | null;
     private _previousStartPos: BlockPoint = { x: 0, y: 0};
     private _previousEndPos: BlockPoint = { x: 0, y: 0};
+    private _id: string;
 
     constructor(parent: BlockArea, startConnector: Connector, initialPoint: BlockPoint) {
+        this._id = uuidv4();
         this._parent = parent;
         this._startConnector = startConnector;
         this._moveSubscription = this._parent.mouseMove.subscribe((area: BlockArea, e: BlockPoint) => {
@@ -70,21 +74,21 @@ export class Connection {
         //endpoint
         let hx1 = -1;
         if (!this._endConnector?.options.alternateConnCurve) {
-            hx1 = x1 + Math.abs(x2 - x1) * curvature;
+            hx1 = ((x1 + 100) + Math.abs(x2 - x1) * curvature);
         } else {
-            hx1 = x1 - Math.abs(x2 - x1) * curvature;
+            hx1 = ((x1 - 50) - Math.abs(x2 - x1) * curvature);
         }
         
         //startpoint
         let hx2 = -1;
         if (!this._startConnector.options.alternateConnCurve) {
-            hx2 = x2 - Math.abs(x2 - x1) * curvature;
+            hx2 = ((x2 - 100) - Math.abs(x2 - x1) * curvature);
         } else {
-            hx2 = x2 + Math.abs(x2 - x1) * curvature;
+            hx2 = ((x2 + 50) + Math.abs(x2 - x1) * curvature);
         }
         
         let pathString = `M ${x1} ${y1} C ${hx1} ${y1} ${hx2} ${y2} ${x2} ${y2}`;
-        pathString = this._parent.options.renderFunction(pathString, x1, y1, x2, y2, hx1, hx2);
+        pathString = this._parent.options.renderPathFunction(pathString, x1, y1, x2, y2, hx1, hx2);
         return pathString;
     }
 
@@ -92,21 +96,27 @@ export class Connection {
         this._containerElem = document.createElement('div');
         this._containerElem.style.position = 'absolute';
         this._containerElem.style.zIndex = '-1';
-        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-        this._path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        this._path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         svg.style.zIndex = '-1';
         svg.style.position = 'absolute';
         svg.style.overflow = 'visible';
         svg.style.pointerEvents = 'none';
+        svg.classList.add('conn-svg');
 
-        const d = this.renderPath([x, y, mouseX, mouseY], 0.4)
-        this._path.classList.add('main-path');
+        this._path.classList.add('conn-path');
+        const d = this.renderPath([x, y, mouseX, mouseY], 0.4);
         this._path.setAttribute('d', d);
-
+        this._path.setAttribute('marker-end', `url(#path-${this.internalId}-end)`);
+        this._path.setAttribute('marker-mid', `url(#path-${this.internalId}-mid)`);
+        this._path.setAttribute('marker-start', `url(#path-${this.internalId}-start)`);
+        svg.appendChild(defs);
         svg.appendChild(this._path);
         this._containerElem.appendChild(svg);
         this._parent.el.appendChild(this._containerElem);
 
+        this._parent.options.renderConnectionFunction(this, svg, this._path, defs);
         this.updateConnection(this._path, d);
     }
 
@@ -129,14 +139,31 @@ export class Connection {
         return this._endConnector;
     }
 
-    public delete() {
+    public get id(): string {
+        return this._id;
+    }
+
+    public get internalId(): string {
+        return this.id;
+    }
+
+    public getPointOnLine(percentage: number): BlockPoint {
+        const length = this._path.getTotalLength();
+        const point = this._path.getPointAtLength(percentage*length);
+        return {
+            x: point.x,
+            y: point.y
+        };
+    }
+
+    public delete(): void {
         this.unsubscribe();
         this._parent.el.removeChild(this._containerElem);
         this.startConnector.removeConnection(this);
         this.endConnector?.removeConnection(this);
     }
 
-    public complete(connector: Connector) {
+    public complete(connector: Connector): void {
         this._endConnector = connector;
         this.unsubscribe();
         this._endConnector.complete(this);
@@ -144,7 +171,7 @@ export class Connection {
         this.update();
     }
 
-    public update() {
+    public update(): void {
         const startPos = this.getStartPosition();
         const endPos = this.getEndPosition();
         if (endPos) {

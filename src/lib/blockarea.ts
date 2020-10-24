@@ -3,11 +3,12 @@ import { Connection } from './connection';
 import { Connector } from './connector';
 import { Drag } from './drag';
 import { Zoom } from './zoom';
-import { listenEvent } from './utils';
+import { listenEvent, uuidv4 } from './utils';
 import { BlockAreaOptions, ConnectionValidationResult, ConnectionValidator, IBlockAreaOptions, Transform } from './blockareaoptions';
-import { TypedEventOne, TypedEventTwo } from './events';
+import { IEventOne, IEventTwo, TypedEventOne, TypedEventTwo } from './events';
+import { IBlockDropItem } from './interfaces';
 
-export class BlockArea {
+export class BlockArea implements IBlockDropItem {
     
     public el: HTMLElement;
     public parentEl: HTMLElement;
@@ -24,8 +25,10 @@ export class BlockArea {
     private _mouseUp = new TypedEventTwo<BlockArea, BlockPoint>();
     private _connectionValidation = new TypedEventTwo<BlockArea, ConnectionValidationResult>();
     private _connectionCreated = new TypedEventOne<Connection>();
+    private _id: string;
     
     constructor(el: HTMLElement, parentEl: HTMLElement, options?: IBlockAreaOptions) {
+        this._id = uuidv4();
         this.el = el;
         this.parentEl = parentEl;
         this._options = new BlockAreaOptions(options);
@@ -43,24 +46,32 @@ export class BlockArea {
         this.update();
     }
 
-    public get mouseMove() {
+    public get mouseMove(): IEventTwo<BlockArea, BlockPoint> {
         return this._mouseMove.asEvent();
     }
 
-    public get mouseUp() {
+    public get mouseUp(): IEventTwo<BlockArea, BlockPoint> {
         return this._mouseUp.asEvent();
     }
 
-    public get connectionCreated() {
+    public get connectionCreated(): IEventOne<Connection> {
         return this._connectionCreated.asEvent();
     }
 
-    public get connectionValidation() {
+    public get connectionValidation(): IEventTwo<BlockArea, ConnectionValidationResult> {
         return this._connectionValidation.asEvent();
     }
 
-    public get options() {
+    public get options(): BlockAreaOptions {
         return this._options;
+    }
+
+    public get id(): string {
+        return this._id;
+    }
+
+    public get internalId(): string {
+        return this.id;
     }
 
     private onMove(e: PointerEvent) {
@@ -83,7 +94,7 @@ export class BlockArea {
     }
 
     private onTranslate(x: number, y: number) {
-        if (this._start) {
+        if (this._start && !this._options.disableDragging) {
             this._transform.x = this._start.x + x;
             this._transform.y = this._start.y + y;
             
@@ -137,39 +148,67 @@ export class BlockArea {
         return { valid: true };
     }
 
-    public move(x: number, y: number) {
+    public createId(): string {
+        return uuidv4();
+    }
+
+    public disableDragging(): BlockArea {
+        this._options.disableDragging = true;
+        return this;
+    }
+
+    public enableDragging(): BlockArea {
+        this._options.disableDragging = false;
+        return this;
+    }
+
+    public disableZooming(): BlockArea {
+        this._options.disableZooming = true;
+        return this;
+    }
+
+    public enableZooming(): BlockArea {
+        this._options.disableZooming = false;
+        return this;
+    }
+
+    public move(x: number, y: number): BlockArea {
         this._transform.x = (x / this._transform.k) * -1;
         this._transform.y = (y / this._transform.k) * -1;
         this.update();
+        return this;
     }
 
-    public zoom(zoom: number) {
+    public zoom(zoom: number): BlockArea {
         this._transform.k = zoom;
         this.update();
+        return this;
     }
 
-    public resetZoom() {
+    public resetZoom(): BlockArea {
         this._transform.k = 1;
         this.update();
+        return this;
     }
 
-    public resetDrag() {
+    public resetDrag(): BlockArea {
         this._transform.x = 0;
         this._transform.y = 0;
         this.update();
+        return this;
     }
 
-    public setActiveConnection(conn: Connection) {
+    public setActiveConnection(conn: Connection): void {
         this.activeConnection = conn;
     }
 
-    public cancelConnection() {
+    public cancelConnection(): void {
         if (this.activeConnection) {
             this.activeConnection.delete();
         }
     }
 
-    public endConnection(connector: Connector) {
+    public endConnection(connector: Connector): void {
         if (this.activeConnection) {
             const conn = this.activeConnection;
             this.activeConnection = null;
@@ -184,7 +223,7 @@ export class BlockArea {
         }
     }
 
-    public delete(removeElements: boolean = false) {
+    public delete(removeElements = false): void {
         this.destroy();
         this._drag.destroy();
         this._zoom.destroy();

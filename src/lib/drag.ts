@@ -1,7 +1,6 @@
 import { BlockPoint } from "./models";
 import { listenEvent, listenWindow } from "./utils";
 
-/* eslint-disable no-unused-vars */
 export class Drag {
 
     private _pointerStart: BlockPoint | null;
@@ -10,9 +9,12 @@ export class Drag {
 
     constructor(
         el: HTMLElement,
-        private onTranslate = (_x: number, _y: number, _e: PointerEvent) => {},
-        private onStart = (_e: PointerEvent) => {},
-        private onDrag = (_e: PointerEvent) => {}
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        private onTranslate: (_x: number, _y: number, _e: PointerEvent) => void = () => {},
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        private onStart: (e: PointerEvent) => void = () => {},
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        private onDrag: (e: PointerEvent) => void = () => {}
     ) {
         this._pointerStart = null;
         this._el = el;
@@ -24,7 +26,7 @@ export class Drag {
         this.destroy = () => { destroyMove(); destroyUp(); destroyDown(); }
     }
 
-    down(e: PointerEvent) {
+    private down(e: PointerEvent) {
         if ((e.pointerType === 'mouse') && (e.button !== 0)) return;
         e.stopPropagation();
         this._pointerStart = { x: e.pageX, y: e.pageY };
@@ -32,7 +34,7 @@ export class Drag {
         this.onStart(e);
     }
 
-    move(e: PointerEvent) {
+    private move(e: PointerEvent) {
         if (!this._pointerStart) return;
         e.preventDefault();
 
@@ -45,7 +47,7 @@ export class Drag {
         this.onTranslate(delta[0] / zoom, delta[1] / zoom, e);
     }
 
-    up(e: PointerEvent) {
+    private up(e: PointerEvent) {
         if (!this._pointerStart) return;
         
         this._pointerStart = null;

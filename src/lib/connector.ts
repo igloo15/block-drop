@@ -1,17 +1,19 @@
 import { Block } from "./block";
 import { BlockArea } from "./blockarea";
 import { Connection } from "./connection";
-import { TypedEventOne, TypedEventTwo } from "./events";
+import { IEventTwo, TypedEventTwo } from "./events";
+import { IBlockDropItem } from "./interfaces";
 import { BlockPoint } from "./models";
-import { listenEvent } from "./utils";
+import { listenEvent, uuidv4 } from "./utils";
 
 export interface ConnectorOptions {
-    isInput: boolean;
+    isInput?: boolean;
     alternateConnCurve?: boolean;
     anchorPointOffset?: BlockPoint;
+    disableConnections?: boolean;
 }
 
-export class Connector {
+export class Connector implements IBlockDropItem {
 
     private _area: BlockArea;
     private _parent: Block | null = null;
@@ -19,20 +21,21 @@ export class Connector {
     private _options: ConnectorOptions = {
         isInput: false,
         alternateConnCurve: false,
-        anchorPointOffset: { x: 0, y: 0 }
+        anchorPointOffset: { x: 0, y: 0 },
+        disableConnections: false
     };
     private _connections: Connection[] = [];
-    private _data: any;
+    private _data: unknown;
     private _destroyDownSubscription: () => void;
     private _destroyUpSubscription: () => void;
 
     private _connectionStarted = new TypedEventTwo<Connector, Connection>();
-    private _connectionCompleted = new TypedEventOne<Connection>();
+    private _connectionCompleted = new TypedEventTwo<Connector, Connection>();
 
-    public id: string;
+    private _id: string;
 
-    constructor(id: string, element: HTMLElement, area: BlockArea, options: ConnectorOptions, extraData?: any) {
-        this.id = id;
+    constructor(element: HTMLElement, area: BlockArea, options: ConnectorOptions, extraData?: unknown) {
+        this._id = uuidv4();
         this._area = area;
         this._el = element;
         this._options = {...this._options, ...options};
@@ -41,7 +44,7 @@ export class Connector {
         this._destroyDownSubscription = listenEvent(this._el, 'pointerdown', e => {
             e.preventDefault();
             e.stopPropagation();
-            if (!this._options.isInput) {
+            if (!this._options.isInput && !this._options.disableConnections) {
                 this.startConnection(e);
             }
         });
@@ -49,7 +52,7 @@ export class Connector {
         this._destroyUpSubscription = listenEvent(this._el, 'pointerup', e => {
             e.preventDefault();
             e.stopPropagation();
-            if (this._options.isInput) {
+            if (this._options.isInput && !this._options.disableConnections) {
                 this._area.endConnection(this);
             } else {
                 this._area.cancelConnection();
@@ -81,12 +84,20 @@ export class Connector {
         return this._options;
     }
 
-    public get connectionStarted() {
+    public get connectionStarted(): IEventTwo<Connector, Connection> {
         return this._connectionStarted.asEvent();
     }
 
-    public get connectionCompleted() {
+    public get connectionCompleted(): IEventTwo<Connector, Connection> {
         return this._connectionCompleted.asEvent();
+    }
+
+    public get id(): string {
+        return this._id;
+    }
+
+    public get internalId(): string {
+        return this.id;
     }
 
     private startConnection(mouseEvent: PointerEvent) {
@@ -99,22 +110,35 @@ export class Connector {
         return this._data as T;
     }
 
-    public setBlockParent(block: Block) {
+    public disableConnections(): Connector {
+        this._options.disableConnections = true;
+        return this;
+    }
+
+    public enableConnections(): Connector {
+        this._options.disableConnections = false;
+        return this;
+    }
+
+    public setBlockParent(block: Block): Connector {
         this._parent = block;
+        return this;
     }
 
-    public complete(conn: Connection) {
+    public complete(conn: Connection): Connector {
         this._connections.push(conn);
-        this._connectionCompleted.next(conn);
+        this._connectionCompleted.next(this, conn);
+        return this;
     }
 
-    public update() {
+    public update(): Connector {
         this._connections.forEach(conn => {
             conn.update();
         });
+        return this;
     }
 
-    public delete(removeConnections: boolean = false, removeElement: boolean = false) {
+    public delete(removeConnections = true, removeElement = false): void {
         this._destroyDownSubscription();
         this._destroyUpSubscription();
         if (removeConnections) {
@@ -128,11 +152,13 @@ export class Connector {
         }
     }
 
-    public removeConnection(conn: Connection) {
+    public removeConnection(conn: Connection): Connector {
         const connIndex = this._connections.indexOf(conn);
         if (connIndex > -1) {
             this._connections.splice(connIndex);
         }
+
+        return this;
     }
    
 }

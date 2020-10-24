@@ -2,11 +2,12 @@ import { Drag } from './drag';
 import { BlockPoint } from './models';
 import { Connector, ConnectorOptions } from './connector';
 import { BlockArea } from './blockarea';
-import { listenEvent } from './utils';
+import { listenEvent, uuidv4 } from './utils';
 import { Connection } from './connection';
-import { TypedEventTwo } from './events';
+import { IEventTwo, TypedEventTwo } from './events';
+import { IBlockDropItem } from './interfaces';
 
-export class Block {
+export class Block implements IBlockDropItem {
     private _el: HTMLElement;
     private _x: number;
     private _y: number;
@@ -18,12 +19,14 @@ export class Block {
     private _mouseDblClick = new TypedEventTwo<Block, BlockPoint>();
     private _destroyClick: () => void;
     private _destroyDblClick: () => void;
-    private _data: any;
-    private _connectorIndex = 0;
+    private _data: unknown;
+    private _internalId: string;
+    private _dragAllowed = true;
 
     public id: string;
 
-    constructor(id: string, element: HTMLElement, extraData?: any) {
+    constructor(id: string, element: HTMLElement, extraData?: unknown) {
+        this._internalId = uuidv4();
         this.id = id;
         this._el = element;
         this._data = extraData;
@@ -44,11 +47,17 @@ export class Block {
     }
 
     private onSelect() {
+        if (!this._dragAllowed) {
+            return;
+        }
         this._start.x = this._x;
         this._start.y = this._y;
     }
 
     private onTranslate(x: number, y: number) {
+        if(!this._dragAllowed) {
+            return;
+        }
         this._x = this._start.x + x;
         this._y = this._start.y + y;
 
@@ -65,27 +74,16 @@ export class Block {
         this._el.style.transform = `translate(${this._x}px, ${this._y}px)`;
     }
 
-    public get click() {
+    public get click(): IEventTwo<Block, BlockPoint> {
         return this._mouseClick.asEvent();
     }
 
-    public get dblClick() {
+    public get dblClick(): IEventTwo<Block, BlockPoint> {
         return this._mouseDblClick.asEvent();
     }
 
-    public getData<T>(): T {
-        return this._data as T;
-    }
-
-    public move(x: number, y: number) {
-        this.onTranslate(x, y);
-    }
-
-    public getPosition(): BlockPoint {
-        return {
-            x: this._x,
-            y: this._y
-        }
+    public get internalId(): string {
+        return this._internalId;
     }
 
     public get inputs(): Connector[] {
@@ -112,6 +110,32 @@ export class Block {
         return this.allConnectors.map((value: Connector) => value.connections).reduce((accumulator, value) => accumulator.concat(value));
     }
 
+    public getData<T>(): T {
+        return this._data as T;
+    }
+
+    public disableDragging(): Block {
+        this._dragAllowed = false;
+        return this;
+    }
+
+    public enableDragging(): Block {
+        this._dragAllowed = true;
+        return this;
+    }
+
+    public move(x: number, y: number): Block {
+        this.onTranslate(x, y);
+        return this;
+    }
+
+    public getPosition(): BlockPoint {
+        return {
+            x: this._x,
+            y: this._y
+        }
+    }
+
     public addInput(connector: Connector): Block {
         connector.setBlockParent(this);
         this._inputs.push(connector);
@@ -121,8 +145,7 @@ export class Block {
     public addInputElements(area: BlockArea, inputs: HTMLElement[], options?: ConnectorOptions): Block {
         const tempOptions = {...options, ...{ isInput: true}};
         for(const elem of inputs) {
-            this.addInput(new Connector(`${this.id}-${this._connectorIndex}`, elem, area, tempOptions));
-            this._connectorIndex++;
+            this.addInput(new Connector(elem, area, tempOptions));
         }
 
         return this;
@@ -142,8 +165,7 @@ export class Block {
     public addOutputElements(area: BlockArea, outputs: HTMLElement[], options?: ConnectorOptions): Block {
         const tempOptions = {...options, ...{ isInput: false}};
         for(const elem of outputs) {
-            this.addOutput(new Connector(`${this.id}-${this._connectorIndex}`, elem, area, tempOptions));
-            this._connectorIndex++;
+            this.addOutput(new Connector(elem, area, tempOptions));
         }
 
         return this;
@@ -154,11 +176,11 @@ export class Block {
         return this;
     }
 
-    public removeConnection(conn: Connection) {
+    public removeConnection(conn: Connection): void {
         conn.delete();
     }
 
-    public delete(removeElement: boolean = false) {
+    public delete(removeElement = false): void {
         this._destroyClick();
         this._destroyDblClick();
         this._dragger.destroy();

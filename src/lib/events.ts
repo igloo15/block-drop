@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface ISubscription {
     unsubscribe(): void;
 }
@@ -71,12 +71,12 @@ export class TypedEvent extends BaseEvent implements IEvent {
         return this.addHandler(callback);
     }
 
-    next() {
+    next(): void {
         this.baseNext();
     }
 
-    nextAsyc() {
-        this.baseNextAsync();
+    async nextAsync(): Promise<void> {
+        await this.baseNextAsync();
     }
 
     asEvent() : IEvent {
@@ -96,12 +96,12 @@ export class TypedEventOne<T> extends BaseEvent implements IEventOne<T> {
         return this.addHandler(callback);
     }
 
-    next(v: T) {
+    next(v: T): void {
         this.baseNext(v);
     }
 
-    nextAsync(v: T) {
-        this.baseNextAsync(v);
+    async nextAsync(v: T): Promise<void> {
+        await this.baseNextAsync(v);
     }
 
     asEvent() : IEventOne<T> {
@@ -121,12 +121,12 @@ export class TypedEventTwo<T, K> extends BaseEvent implements IEventTwo<T, K> {
         return this.addHandler(callback);
     }
 
-    next(v: T, t: K) {
+    next(v: T, t: K): void {
         this.baseNext(v, t);
     }
 
-    nextAsync(v: T, t: K) {
-        this.baseNextAsync(v, t);
+    async nextAsync(v: T, t: K): Promise<void> {
+        await this.baseNextAsync(v, t);
     }
 
     asEvent() : IEventTwo<T, K> {
