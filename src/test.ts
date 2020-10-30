@@ -44,7 +44,7 @@ console.log(item1);
 
 const item2 = <HTMLElement>document.querySelector('#item-2');
 
-const conn2 = <HTMLElement>document.querySelector('.connector');
+const conn2 = <HTMLElement>document.querySelector('#output-1');
 
 const newNode2 = new Block('item2', item2).addOutputElements(newArea, [conn2]);
 
@@ -58,6 +58,23 @@ newNode2.click.subscribe((block, e) => {
 newNode2.dblClick.subscribe((block, e) => {
     console.log(`New Node 2 Dbl Connections: ${block.allConnections.length}`);
     console.log(`New Node 2 Dbl Clicked ${e.x}:${e.y}`);
+});
+
+myConn1.hoverOver.subscribe((v, t) => {
+    console.log(v);
+    console.log(t);
+});
+
+myConn1.connectionCompleted.subscribe((v, t) => {
+    console.log(v);
+    console.log(t);
+    t.clickEvent.subscribe(v=> {
+        console.log(`Clicked Connection ${v.internalId}`);
+    });
+
+    t.dblClickEvent.subscribe(v => {
+        console.log(`Dbl Clicked Connection ${v.internalId}`);
+    });
 });
 
 console.log(item2);

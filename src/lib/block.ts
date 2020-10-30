@@ -30,6 +30,8 @@ export class Block implements IBlockDropItem {
         this.id = id;
         this._el = element;
         this._data = extraData;
+        this._el.classList.add(`block-${this.internalId}`);
+        this._el.classList.add(`block`);
         this._x = this._el.getBoundingClientRect().x;
         this._y = this._el.getBoundingClientRect().y;
         this._start = { x: this._x, y: this._y };

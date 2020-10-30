@@ -133,3 +133,65 @@ export class TypedEventTwo<T, K> extends BaseEvent implements IEventTwo<T, K> {
         return this;
     }
 }
+
+interface IHTMLEventHandler {
+    id: string;
+    handler: (e: unknown) => void;
+}
+
+class HTMLEventGroup {
+    private _handlers: IHTMLEventHandler[] = [];
+    public name: string;
+
+    constructor(name: string) {
+        this.name = name;
+    }
+
+    addHandler(id: string, handler: (e: any) => void): () => void {
+        this._handlers.push({id, handler});
+
+        return () => {
+            for (let i = 0; i < this._handlers.length; i++) {
+                if (id === this._handlers[i].id) {
+                    this._handlers.splice(i, 1);
+                }
+            }
+        };
+    }
+
+    process(e: any): void {
+        this._handlers.forEach(evtHandler => {
+            if (e.target.matches(evtHandler.id)) {
+                evtHandler.handler(e);
+            }
+        });
+    }
+}
+
+export class HTMLEventManager {
+    private _el: HTMLElement;
+    private _eventMap: HTMLEventGroup[] = [];
+
+    constructor(el: HTMLElement) {
+        this._el = el;
+    }
+
+    private findEvent(id: string): HTMLEventGroup | undefined {
+        return this._eventMap.find(v => v.name === id);
+    }
+
+    public addListener<K extends keyof HTMLElementEventMap>(id: string, event: K, handler: (e: HTMLElementEventMap[K]) => void): () => void {
+        let eventGroup = this.findEvent(event);
+        if (!eventGroup) {
+            eventGroup = new HTMLEventGroup(event);
+            this._eventMap.push(eventGroup);
+            this._el.addEventListener(event, (e: any) => {
+                const foundGroup = this.findEvent(event);
+                if (foundGroup) {
+                    foundGroup.process(e);
+                }
+            });
+        }
+        return eventGroup.addHandler(id, handler);
+    }
+}

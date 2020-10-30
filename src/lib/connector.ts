@@ -26,11 +26,11 @@ export class Connector implements IBlockDropItem {
     };
     private _connections: Connection[] = [];
     private _data: unknown;
-    private _destroyDownSubscription: () => void;
-    private _destroyUpSubscription: () => void;
+    private _destroy: () => void;
 
     private _connectionStarted = new TypedEventTwo<Connector, Connection>();
     private _connectionCompleted = new TypedEventTwo<Connector, Connection>();
+    private _hoverOver = new TypedEventTwo<Connector, Connection | null>();
 
     private _id: string;
 
@@ -40,8 +40,10 @@ export class Connector implements IBlockDropItem {
         this._el = element;
         this._options = {...this._options, ...options};
         this._data = extraData;
+        this._el.classList.add(`connector-${this.internalId}`);
+        this._el.classList.add(`connector`);
         
-        this._destroyDownSubscription = listenEvent(this._el, 'pointerdown', e => {
+        const destroyDown = listenEvent(this._el, 'pointerdown', e => {
             e.preventDefault();
             e.stopPropagation();
             if (!this._options.isInput && !this._options.disableConnections) {
@@ -49,7 +51,7 @@ export class Connector implements IBlockDropItem {
             }
         });
     
-        this._destroyUpSubscription = listenEvent(this._el, 'pointerup', e => {
+        const destroyUp = listenEvent(this._el, 'pointerup', e => {
             e.preventDefault();
             e.stopPropagation();
             if (this._options.isInput && !this._options.disableConnections) {
@@ -58,6 +60,12 @@ export class Connector implements IBlockDropItem {
                 this._area.cancelConnection();
             }
         });
+
+        const destroyHover = listenEvent(this._el, 'pointerover', () => {
+            this._hoverOver.nextAsync(this, this._area.activeConnection);
+        });
+
+        this._destroy = () => { destroyHover(); destroyUp(); destroyDown(); }
         
     }
 
@@ -90,6 +98,10 @@ export class Connector implements IBlockDropItem {
 
     public get connectionCompleted(): IEventTwo<Connector, Connection> {
         return this._connectionCompleted.asEvent();
+    }
+
+    public get hoverOver(): IEventTwo<Connector, Connection | null> {
+        return this._hoverOver.asEvent();
     }
 
     public get id(): string {
@@ -139,8 +151,7 @@ export class Connector implements IBlockDropItem {
     }
 
     public delete(removeConnections = true, removeElement = false): void {
-        this._destroyDownSubscription();
-        this._destroyUpSubscription();
+        this._destroy();
         if (removeConnections) {
             this._connections.forEach(conn => {
                 conn.delete();

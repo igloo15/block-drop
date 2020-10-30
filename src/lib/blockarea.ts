@@ -5,7 +5,7 @@ import { Drag } from './drag';
 import { Zoom } from './zoom';
 import { listenEvent, uuidv4 } from './utils';
 import { BlockAreaOptions, ConnectionValidationResult, ConnectionValidator, IBlockAreaOptions, Transform } from './blockareaoptions';
-import { IEventOne, IEventTwo, TypedEventOne, TypedEventTwo } from './events';
+import { HTMLEventManager, IEventOne, IEventTwo, TypedEventOne, TypedEventTwo } from './events';
 import { IBlockDropItem } from './interfaces';
 
 export class BlockArea implements IBlockDropItem {
@@ -26,12 +26,16 @@ export class BlockArea implements IBlockDropItem {
     private _connectionValidation = new TypedEventTwo<BlockArea, ConnectionValidationResult>();
     private _connectionCreated = new TypedEventOne<Connection>();
     private _id: string;
+    private _eventMap: HTMLEventManager;
     
     constructor(el: HTMLElement, parentEl: HTMLElement, options?: IBlockAreaOptions) {
         this._id = uuidv4();
         this.el = el;
         this.parentEl = parentEl;
         this._options = new BlockAreaOptions(options);
+        this._eventMap = new HTMLEventManager(this.el);
+        this.el.classList.add(`area-${this.internalId}`);
+        this.el.classList.add(`area`);
         if (this._options.gridBackground) {
             this.el.classList.add('grid');
         }
@@ -230,6 +234,10 @@ export class BlockArea implements IBlockDropItem {
         if (removeElements) {
             this.parentEl.removeChild(this.el);
         }
+    }
+
+    public addListener<K extends keyof HTMLElementEventMap>(id: string, event: K, handler: (e: HTMLElementEventMap[K]) => void): () => void {
+        return this._eventMap.addListener(id, event, handler);
     }
     
 }

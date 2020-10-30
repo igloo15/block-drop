@@ -1,10 +1,10 @@
 import { Block } from "./block";
 import { BlockArea } from "./blockarea";
 import { Connector } from "./connector";
-import { ISubscription } from "./events";
+import { IEventOne, ISubscription, TypedEventOne } from "./events";
 import { IBlockDropItem } from "./interfaces";
 import { BlockPoint } from "./models";
-import { uuidv4 } from "./utils";
+import { listenEvent, listenGraphicsEvent, uuidv4 } from "./utils";
 
 export class Connection implements IBlockDropItem {
 
@@ -15,9 +15,13 @@ export class Connection implements IBlockDropItem {
     private _endConnector: Connector | null = null;
     private _moveSubscription!: ISubscription | null;
     private _upSubscription!: ISubscription | null;
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    private _destroy: () => void = () => {};
     private _previousStartPos: BlockPoint = { x: 0, y: 0};
     private _previousEndPos: BlockPoint = { x: 0, y: 0};
     private _id: string;
+    private _clickedEvent: TypedEventOne<Connection> = new TypedEventOne<Connection>();
+    private _dblClickedEvent: TypedEventOne<Connection> = new TypedEventOne<Connection>();
 
     constructor(parent: BlockArea, startConnector: Connector, initialPoint: BlockPoint) {
         this._id = uuidv4();
@@ -48,6 +52,8 @@ export class Connection implements IBlockDropItem {
             this._upSubscription.unsubscribe();
             this._upSubscription = null;
         }
+
+        
     }
 
     private getStartPosition(): BlockPoint {
@@ -99,23 +105,35 @@ export class Connection implements IBlockDropItem {
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
         this._path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        svg.style.zIndex = '-1';
-        svg.style.position = 'absolute';
-        svg.style.overflow = 'visible';
-        svg.style.pointerEvents = 'none';
+        
         svg.classList.add('conn-svg');
-
+        svg.classList.add(`conn-${this.internalId}-svg`);
         this._path.classList.add('conn-path');
+        this._path.classList.add(`conn-${this.internalId}-path`);
+
         const d = this.renderPath([x, y, mouseX, mouseY], 0.4);
         this._path.setAttribute('d', d);
         this._path.setAttribute('marker-end', `url(#path-${this.internalId}-end)`);
         this._path.setAttribute('marker-mid', `url(#path-${this.internalId}-mid)`);
         this._path.setAttribute('marker-start', `url(#path-${this.internalId}-start)`);
+
+        const destroyClick = this._parent.addListener(`.conn-${this.internalId}-path`, 'click', () => {
+            console.log('click');
+            this._clickedEvent.nextAsync(this); 
+        });
+
+        const destroyDblClick = this._parent.addListener(`.conn-${this.internalId}-path`, 'dblclick', () => {
+            console.log('dblClick');
+            this._dblClickedEvent.nextAsync(this); 
+        });
+
+        this._destroy = () => { destroyClick(); destroyDblClick(); };
+
         svg.appendChild(defs);
         svg.appendChild(this._path);
         this._containerElem.appendChild(svg);
         this._parent.el.appendChild(this._containerElem);
-
+        
         this._parent.options.renderConnectionFunction(this, svg, this._path, defs);
         this.updateConnection(this._path, d);
     }
@@ -147,6 +165,14 @@ export class Connection implements IBlockDropItem {
         return this.id;
     }
 
+    public get clickEvent(): IEventOne<Connection> {
+        return this._clickedEvent.asEvent();
+    }
+
+    public get dblClickEvent(): IEventOne<Connection> {
+        return this._dblClickedEvent.asEvent();
+    }
+
     public getPointOnLine(percentage: number): BlockPoint {
         const length = this._path.getTotalLength();
         const point = this._path.getPointAtLength(percentage*length);
@@ -158,6 +184,7 @@ export class Connection implements IBlockDropItem {
 
     public delete(): void {
         this.unsubscribe();
+        this._destroy();
         this._parent.el.removeChild(this._containerElem);
         this.startConnector.removeConnection(this);
         this.endConnector?.removeConnection(this);

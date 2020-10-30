@@ -2,8 +2,16 @@
   color: blue;
   stroke: blue;
   stroke-width: 5px;
+  pointer-events: stroke;
   fill:none;
   z-index: -1;
+}
+
+.conn-svg {
+  z-index: -1;
+  overflow: visible;
+  position: absolute;
+  pointer-events: none;
 }
 
 .grid {
