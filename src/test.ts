@@ -70,6 +70,11 @@ myConn1.connectionCompleted.subscribe((v, t) => {
     console.log(t);
     t.clickEvent.subscribe(v=> {
         console.log(`Clicked Connection ${v.internalId}`);
+        if (v.path.style.stroke === 'green') {
+            v.path.style.stroke = 'blue';
+        } else {
+            v.path.style.stroke = 'green';
+        }
     });
 
     t.dblClickEvent.subscribe(v => {

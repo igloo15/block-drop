@@ -157,6 +157,10 @@ export class Connection implements IBlockDropItem {
         return this._endConnector;
     }
 
+    public get path(): SVGPathElement {
+        return this._path;
+    }
+
     public get id(): string {
         return this._id;
     }
