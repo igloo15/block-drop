@@ -239,8 +239,8 @@ export class TypedBlock<T> extends Block {
     /**
      * Construct a typed block with a specific type
      */
-    constructor(element: HTMLElement, options: IBlockOptions, extraData?: T) {
-        super(element, options, extraData);
+    constructor(element: HTMLElement, options: IBlockOptions) {
+        super(element, options);
     }
     public get data(): T {
         return this.getData<T>();
