@@ -182,6 +182,37 @@ export class Block implements IBlockDropItem {
         conn.delete();
     }
 
+    public removeConnector(connector: Connector, removeElement = false): Block {
+        let collec: Connector[] = [];
+        if(connector.options.isInput) {
+            collec = this._inputs;
+        } else {
+            collec = this._outputs;
+        }
+
+        const index = collec.findIndex(i => i.internalId === connector.internalId);
+        collec.splice(index, 1);
+        connector.delete(true, removeElement);
+
+        return this;
+    }
+
+    public removeAllInputs(removeElement = false): Block {
+        this._inputs.forEach(conn => {
+            this.removeConnector(conn, removeElement);
+        });
+
+        return this;
+    }
+
+    public removeAllOutputs(removeElement = false): Block {
+        this._outputs.forEach(conn => {
+            this.removeConnector(conn, removeElement);
+        });
+
+        return this;
+    }
+
     public delete(removeElement = false): void {
         this._destroyClick();
         this._destroyDblClick();
