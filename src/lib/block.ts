@@ -10,6 +10,7 @@ import { IBlockDropItem } from './interfaces';
 export interface IBlockOptions {
     id: string;
     loc?: BlockPoint;
+    data?: unknown;
 }
 
 export class Block implements IBlockDropItem {
@@ -30,11 +31,11 @@ export class Block implements IBlockDropItem {
 
     public id: string;
 
-    constructor(element: HTMLElement, options: IBlockOptions, extraData?: unknown) {
+    constructor(element: HTMLElement, options: IBlockOptions) {
         this._internalId = uuidv4();
         this.id = options.id;
         this._el = element;
-        this._data = extraData;
+        this._data = options.data;
         this._el.classList.add(`block-${this.internalId}`);
         this._el.classList.add(`block`);
         this._x = this._el.getBoundingClientRect().x;

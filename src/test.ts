@@ -38,7 +38,7 @@ const conn1 = <HTMLElement>document.querySelector('.input');
 
 const myConn1 = new Connector(conn1, newArea, { isInput: true, anchorPointOffset: {x: 23, y: 0 } });
 
-const newNode1 = new Block('item1', item1).addInput(myConn1);
+const newNode1 = new Block(item1, {id: 'item1'}).addInput(myConn1);
 
 console.log(item1);
 
@@ -46,7 +46,7 @@ const item2 = <HTMLElement>document.querySelector('#item-2');
 
 const conn2 = <HTMLElement>document.querySelector('#output-1');
 
-const newNode2 = new Block('item2', item2).addOutputElements(newArea, [conn2]);
+const newNode2 = new Block(item2, {id: 'item2'}).addOutputElements(newArea, [conn2]);
 
 const newConnector = document.createElement('div');
 
