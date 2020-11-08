@@ -7,6 +7,11 @@ import { Connection } from './connection';
 import { IEventTwo, TypedEventTwo } from './events';
 import { IBlockDropItem } from './interfaces';
 
+export interface IBlockOptions {
+    id: string;
+    loc?: BlockPoint;
+}
+
 export class Block implements IBlockDropItem {
     private _el: HTMLElement;
     private _x: number;
@@ -25,9 +30,9 @@ export class Block implements IBlockDropItem {
 
     public id: string;
 
-    constructor(id: string, element: HTMLElement, extraData?: unknown) {
+    constructor(element: HTMLElement, options: IBlockOptions, extraData?: unknown) {
         this._internalId = uuidv4();
-        this.id = id;
+        this.id = options.id;
         this._el = element;
         this._data = extraData;
         this._el.classList.add(`block-${this.internalId}`);
@@ -38,6 +43,10 @@ export class Block implements IBlockDropItem {
         this._dragger = new Drag(this._el, this.onTranslate.bind(this), this.onSelect.bind(this));
         this._destroyClick = listenEvent(this._el, 'click', this.onClick.bind(this));
         this._destroyDblClick = listenEvent(this._el, 'dblclick', this.onDblClick.bind(this));
+
+        if (options.loc) {
+            this.move(options.loc.x, options.loc.y);
+        }
     }
 
     private onClick(e: MouseEvent) {
@@ -229,8 +238,8 @@ export class TypedBlock<T> extends Block {
     /**
      * Construct a typed block with a specific type
      */
-    constructor(id: string, element: HTMLElement, extraData?: T) {
-        super(id, element, extraData);
+    constructor(element: HTMLElement, options: IBlockOptions, extraData?: T) {
+        super(element, options, extraData);
     }
     public get data(): T {
         return this.getData<T>();
