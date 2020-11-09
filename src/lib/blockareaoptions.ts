@@ -53,6 +53,7 @@ export interface IBlockAreaOptions {
 
     pathCurvature?: number;
     patchStyleClass?: string;
+    connectionAlternative?: boolean;
 
 
     renderPathFunction?: PathRenderFunction;
@@ -75,6 +76,7 @@ export class BlockAreaOptions {
 
     public pathCurvature = 0.4;
     public pathStyleClass = 'main-path';
+    public connectionAlternative = false;
     
     public renderPathFunction: PathRenderFunction = (value: string) => value;
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -95,6 +97,7 @@ export class BlockAreaOptions {
             this.disableDragging = options.disableDragging ?? this.disableDragging;
             this.pathCurvature = options.pathCurvature ?? this.pathCurvature;
             this.pathStyleClass = options.patchStyleClass ?? this.pathStyleClass;
+            this.connectionAlternative = options.connectionAlternative ?? this.connectionAlternative;
             this.renderPathFunction = options.renderPathFunction ?? this.renderPathFunction;
             this.renderConnectionFunction = options.renderConnectionFunction ?? this.renderConnectionFunction;
             this.validators = options.validators ?? this.validators;
