@@ -79,7 +79,9 @@ export class Connection implements IBlockDropItem {
 
         //endpoint
         let hx1 = -1;
-        if (!this._endConnector?.options.alternateConnCurve || (!this._endConnector && this._parent.options.connectionAlternative)) {
+        if (this._endConnector?.options.alternateConnCurve) {
+            hx1 = ((x1 + 100) + Math.abs(x2 - x1) * curvature);
+        } else if (this._parent.options.connectionAlternative) {
             hx1 = ((x1 + 100) + Math.abs(x2 - x1) * curvature);
         } else {
             hx1 = ((x1 - 50) - Math.abs(x2 - x1) * curvature);
