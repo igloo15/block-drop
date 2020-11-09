@@ -6,11 +6,13 @@ import { IBlockDropItem } from "./interfaces";
 import { BlockPoint } from "./models";
 import { listenEvent, uuidv4 } from "./utils";
 
-export interface ConnectorOptions {
+export interface IConnectorOptions {
     isInput?: boolean;
     alternateConnCurve?: boolean;
     anchorPointOffset?: BlockPoint;
     disableConnections?: boolean;
+    internalId?: string;
+    data?: unknown;
 }
 
 export class Connector implements IBlockDropItem {
@@ -18,7 +20,7 @@ export class Connector implements IBlockDropItem {
     private _area: BlockArea;
     private _parent: Block | null = null;
     private _el: HTMLElement;
-    private _options: ConnectorOptions = {
+    private _options: IConnectorOptions = {
         isInput: false,
         alternateConnCurve: false,
         anchorPointOffset: { x: 0, y: 0 },
@@ -34,12 +36,16 @@ export class Connector implements IBlockDropItem {
 
     private _id: string;
 
-    constructor(element: HTMLElement, area: BlockArea, options: ConnectorOptions, extraData?: unknown) {
-        this._id = uuidv4();
+    constructor(element: HTMLElement, area: BlockArea, options: IConnectorOptions) {
+        if (options.internalId) {
+            this._id = options.internalId;
+        } else {
+            this._id = uuidv4();
+        }
         this._area = area;
         this._el = element;
         this._options = {...this._options, ...options};
-        this._data = extraData;
+        this._data = options.data;
         this._el.classList.add(`connector-${this.internalId}`);
         this._el.classList.add(`connector`);
         
@@ -88,7 +94,7 @@ export class Connector implements IBlockDropItem {
         return this._connections;
     }
 
-    public get options(): ConnectorOptions {
+    public get options(): IConnectorOptions {
         return this._options;
     }
 

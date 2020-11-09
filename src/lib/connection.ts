@@ -4,7 +4,7 @@ import { Connector } from "./connector";
 import { IEventOne, ISubscription, TypedEventOne } from "./events";
 import { IBlockDropItem } from "./interfaces";
 import { BlockPoint } from "./models";
-import { listenEvent, listenGraphicsEvent, uuidv4 } from "./utils";
+import { uuidv4 } from "./utils";
 
 export class Connection implements IBlockDropItem {
 

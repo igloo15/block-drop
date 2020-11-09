@@ -1,6 +1,6 @@
 import { Drag } from './drag';
 import { BlockPoint } from './models';
-import { Connector, ConnectorOptions } from './connector';
+import { Connector, IConnectorOptions } from './connector';
 import { BlockArea } from './blockarea';
 import { listenEvent, uuidv4 } from './utils';
 import { Connection } from './connection';
@@ -11,6 +11,7 @@ export interface IBlockOptions {
     id: string;
     loc?: BlockPoint;
     data?: unknown;
+    internalId?: string;
 }
 
 export class Block implements IBlockDropItem {
@@ -32,7 +33,11 @@ export class Block implements IBlockDropItem {
     public id: string;
 
     constructor(element: HTMLElement, options: IBlockOptions) {
-        this._internalId = uuidv4();
+        if(options.internalId) {
+            this._internalId = options.internalId;
+        } else {
+            this._internalId = uuidv4();
+        }
         this.id = options.id;
         this._el = element;
         this._data = options.data;
@@ -154,7 +159,7 @@ export class Block implements IBlockDropItem {
         return this;
     }
 
-    public addInputElements(area: BlockArea, inputs: HTMLElement[], options?: ConnectorOptions): Block {
+    public addInputElements(area: BlockArea, inputs: HTMLElement[], options?: IConnectorOptions): Block {
         const tempOptions = {...options, ...{ isInput: true}};
         for(const elem of inputs) {
             this.addInput(new Connector(elem, area, tempOptions));
@@ -163,7 +168,7 @@ export class Block implements IBlockDropItem {
         return this;
     }
 
-    public addInputStrings(area: BlockArea, inputs: string[], options?: ConnectorOptions): Block {
+    public addInputStrings(area: BlockArea, inputs: string[], options?: IConnectorOptions): Block {
         this.addInputElements(area, inputs.map(val => <HTMLElement>this._el.querySelector(val)), options);
         return this;
     }
@@ -174,7 +179,7 @@ export class Block implements IBlockDropItem {
         return this;
     }
 
-    public addOutputElements(area: BlockArea, outputs: HTMLElement[], options?: ConnectorOptions): Block {
+    public addOutputElements(area: BlockArea, outputs: HTMLElement[], options?: IConnectorOptions): Block {
         const tempOptions = {...options, ...{ isInput: false}};
         for(const elem of outputs) {
             this.addOutput(new Connector(elem, area, tempOptions));
@@ -183,7 +188,7 @@ export class Block implements IBlockDropItem {
         return this;
     }
 
-    public addOutputStrings(area: BlockArea, outputs: string[], options?: ConnectorOptions): Block {
+    public addOutputStrings(area: BlockArea, outputs: string[], options?: IConnectorOptions): Block {
         this.addOutputElements(area, outputs.map(val => <HTMLElement>this._el.querySelector(val)), options);
         return this;
     }
