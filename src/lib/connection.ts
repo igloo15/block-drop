@@ -76,23 +76,36 @@ export class Connection implements IBlockDropItem {
 
     private renderPath(points: number[], curvature: number) {
         const [x1, y1, x2, y2] = points;
-
         //endpoint
         let hx1 = -1;
+        // if (this._endConnector?.options.alternateConnCurve) {
+        //     hx1 = ((x1 - 50) - Math.abs(x2 - x1) * curvature);
+        // } else if (this._parent.options.connectionAlternative) {
+        //     hx1 = ((x1 - 50) - Math.abs(x2 - x1) * curvature);
+        // } else {
+        //     hx1 = ((x1 + 100) + Math.abs(x2 - x1) * curvature);
+        // }
+
         if (this._endConnector?.options.alternateConnCurve) {
             hx1 = ((x1 + 100) + Math.abs(x2 - x1) * curvature);
         } else if (this._parent.options.connectionAlternative) {
             hx1 = ((x1 + 100) + Math.abs(x2 - x1) * curvature);
         } else {
             hx1 = ((x1 - 50) - Math.abs(x2 - x1) * curvature);
+            
         }
         
         //startpoint
         let hx2 = -1;
+        // if (!this._startConnector.options.alternateConnCurve) {
+        //     hx2 = ((x2 - 100) - Math.abs(x2 - x1) * curvature);
+        // } else {
+        //     hx2 = ((x2 + 50) + Math.abs(x2 - x1) * curvature);
+        // }
         if (!this._startConnector.options.alternateConnCurve) {
-            hx2 = ((x2 - 100) - Math.abs(x2 - x1) * curvature);
-        } else {
             hx2 = ((x2 + 50) + Math.abs(x2 - x1) * curvature);
+        } else {
+            hx2 = ((x2 - 100) - Math.abs(x2 - x1) * curvature);
         }
         
         let pathString = `M ${x1} ${y1} C ${hx1} ${y1} ${hx2} ${y2} ${x2} ${y2}`;

@@ -1,7 +1,7 @@
 import { Block } from "./block";
 import { BlockArea } from "./blockarea";
 import { Connection } from "./connection";
-import { IEventTwo, TypedEventTwo } from "./events";
+import { IEventTwo, TypedEvent, TypedEventTwo } from "./events";
 import { IBlockDropItem } from "./interfaces";
 import { BlockPoint } from "./models";
 import { listenEvent, uuidv4 } from "./utils";
@@ -16,7 +16,7 @@ export interface IConnectorOptions {
 }
 
 export class Connector implements IBlockDropItem {
-
+    private _connected = false;
     private _area: BlockArea;
     private _parent: Block | null = null;
     private _el: HTMLElement;
@@ -32,6 +32,7 @@ export class Connector implements IBlockDropItem {
 
     private _connectionStarted = new TypedEventTwo<Connector, Connection>();
     private _connectionCompleted = new TypedEventTwo<Connector, Connection>();
+    private _connectionRemoved = new TypedEventTwo<Connector, Connection>();
     private _hoverOver = new TypedEventTwo<Connector, Connection | null>();
 
     private _id: string;
@@ -48,6 +49,11 @@ export class Connector implements IBlockDropItem {
         this._data = options.data;
         this._el.classList.add(`connector-${this.internalId}`);
         this._el.classList.add(`connector`);
+        if (options.isInput) {
+            this._el.classList.add(`connector-input`);
+        } else {
+            this._el.classList.add(`connector-output`);
+        }
         
         const destroyDown = listenEvent(this._el, 'pointerdown', e => {
             e.preventDefault();
@@ -106,6 +112,10 @@ export class Connector implements IBlockDropItem {
         return this._connectionCompleted.asEvent();
     }
 
+    public get connectionRemoved(): IEventTwo<Connector, Connection> {
+        return this._connectionRemoved.asEvent();
+    }
+
     public get hoverOver(): IEventTwo<Connector, Connection | null> {
         return this._hoverOver.asEvent();
     }
@@ -123,6 +133,8 @@ export class Connector implements IBlockDropItem {
         this._area.setActiveConnection(tempConn);
         this._connectionStarted.next(this, tempConn);
     }
+
+    
 
     public getData<T>(): T {
         return this._data as T;
@@ -146,6 +158,7 @@ export class Connector implements IBlockDropItem {
     public complete(conn: Connection): Connector {
         this._connections.push(conn);
         this._connectionCompleted.next(this, conn);
+        this.updateConnections();
         return this;
     }
 
@@ -174,8 +187,22 @@ export class Connector implements IBlockDropItem {
         if (connIndex > -1) {
             this._connections.splice(connIndex);
         }
-
+        this.updateConnections();
         return this;
+    }
+
+    public updateConnections(): void {
+        this._parent?.updateConnections();
+        const numConnections = this._connections.length;
+        if (numConnections > 0 && !this._connected) {
+            this._el.classList.add(`connector-${this.internalId}-connected`);
+            this._el.classList.add(`connector-connected`);
+            this._connected = true;
+        } else if (numConnections === 0 && this._connected) {
+            this._connected = false;
+            this._el.classList.remove(`connector-${this.internalId}-connected`);
+            this._el.classList.remove(`connector-connected`);
+        }
     }
    
 }

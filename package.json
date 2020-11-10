@@ -1,7 +1,7 @@
 {
   "name": "@igloo15/block-drop",
-  "oldVersion": "0.6.0-dev.8",
-  "version": "0.6.0-dev.9",
+  "oldVersion": "0.6.0-dev.9",
+  "version": "0.6.0-dev.10",
   "description": "Create a node diagram with this easy to use library that can be layered on top of existing web applications",
   "main": "dist/index.js",
   "scripts": {

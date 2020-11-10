@@ -15,6 +15,7 @@ export interface IBlockOptions {
 }
 
 export class Block implements IBlockDropItem {
+    private _connected = false;
     private _el: HTMLElement;
     private _x: number;
     private _y: number;
@@ -125,6 +126,19 @@ export class Block implements IBlockDropItem {
 
     public get allConnections(): Connection[] {
         return this.allConnectors.map((value: Connector) => value.connections).reduce((accumulator, value) => accumulator.concat(value));
+    }
+
+    public updateConnections(): void {
+        const numConnections = this.allConnections.length;
+        if (numConnections > 0 && !this._connected) {
+            this._el.classList.add(`block-${this.internalId}-connected`);
+            this._el.classList.add(`block-connected`);
+            this._connected = true;
+        } else if (numConnections === 0 && this._connected) {
+            this._connected = false;
+            this._el.classList.remove(`block-${this.internalId}-connected`);
+            this._el.classList.remove(`block-connected`);
+        }
     }
 
     public getData<T>(): T {
