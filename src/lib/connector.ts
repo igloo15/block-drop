@@ -81,6 +81,10 @@ export class Connector implements IBlockDropItem {
         
     }
 
+    public get data(): unknown {
+        return this._data;
+    }
+
     public get position(): BlockPoint | undefined {
         const parentPos = this._parent?.getPosition();
         let anchorPoint = parentPos;
