@@ -1,5 +1,6 @@
 import { Connection } from "./connection";
 import { Connector } from "./connector";
+import { BlockPoint } from "./models";
 
 export interface Transform { 
     k: number; 
@@ -38,6 +39,8 @@ export type PathRenderFunction = (
     x2: number, y2: number, 
     hx1: number, hx2: number) => string;
 
+export type AlterAnchorPointFunction = (connector: Connector, point: BlockPoint | undefined) => BlockPoint | undefined;
+
 export interface IBlockAreaOptions {
     zoomMin?: number;
     zoomMax?: number;
@@ -55,9 +58,10 @@ export interface IBlockAreaOptions {
     patchStyleClass?: string;
     connectionAlternative?: boolean;
 
-
     renderPathFunction?: PathRenderFunction;
     renderConnectionFunction?: ConnectionRenderFunction;
+    alterAnchorPointFunction?: AlterAnchorPointFunction;
+
     validators?: ConnectionValidator[];
 }
 
@@ -81,6 +85,7 @@ export class BlockAreaOptions {
     public renderPathFunction: PathRenderFunction = (value: string) => value;
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public renderConnectionFunction: ConnectionRenderFunction = () => {};
+    public alterAnchorPointFunction: AlterAnchorPointFunction = (connector: Connector, point: BlockPoint | undefined) => { return point; }
 
     public validators: ConnectionValidator[] = [];
 
@@ -100,6 +105,7 @@ export class BlockAreaOptions {
             this.connectionAlternative = options.connectionAlternative ?? this.connectionAlternative;
             this.renderPathFunction = options.renderPathFunction ?? this.renderPathFunction;
             this.renderConnectionFunction = options.renderConnectionFunction ?? this.renderConnectionFunction;
+            this.alterAnchorPointFunction = options.alterAnchorPointFunction ?? this.alterAnchorPointFunction;
             this.validators = options.validators ?? this.validators;
         }
     }

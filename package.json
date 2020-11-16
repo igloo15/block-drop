@@ -1,7 +1,7 @@
 {
   "name": "@igloo15/block-drop",
-  "oldVersion": "0.6.0-dev.9",
-  "version": "0.6.0-dev.10",
+  "oldVersion": "0.6.0-dev.10",
+  "version": "0.6.0-dev.11",
   "description": "Create a node diagram with this easy to use library that can be layered on top of existing web applications",
   "main": "dist/index.js",
   "scripts": {
@@ -69,6 +69,6 @@
   },
   "readme": "ERROR: No README data found!",
   "_id": "@igloo15/basic-typescript-lib@0.2.0-dev.7",
-  "date": "Sun Nov 08 2020",
+  "date": "Mon Nov 09 2020",
   "dependencies": {}
 }

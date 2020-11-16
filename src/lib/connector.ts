@@ -83,13 +83,14 @@ export class Connector implements IBlockDropItem {
 
     public get position(): BlockPoint | undefined {
         const parentPos = this._parent?.getPosition();
+        let anchorPoint = parentPos;
         if (parentPos) {
-            return {
+            anchorPoint = {
                 x: parentPos.x + this._el.offsetLeft + (this._el.offsetWidth / 2) + (this._options.anchorPointOffset?.x || 0),
                 y: parentPos.y + this._el.offsetTop + (this._el.offsetHeight / 2) + (this._options.anchorPointOffset?.y || 0)
             }
         }
-        return parentPos;
+        return this._area.options.alterAnchorPointFunction(this, anchorPoint);
     }
 
     public get block(): Block | null {
