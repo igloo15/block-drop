@@ -121,15 +121,27 @@ export class Block implements IBlockDropItem {
     }
 
     public get inputConnections(): Connection[] {
-        return this.inputs.map(value => value.connections).reduce((accumulator, value) => accumulator.concat(value));
+        if(this.inputs.length > 0) {
+            const connsArray = this.inputs.map(value => value.connections);
+            if (connsArray.length > 0) {
+                return connsArray.reduce((accumulator, value) => accumulator.concat(value));
+            }
+        }
+        return [];        
     }
 
     public get outputConnections(): Connection[] {
-        return this.outputs.map(value => value.connections).reduce((accumulator, value) => accumulator.concat(value));
+        if(this.outputs.length > 0) {
+            const connsArray = this.outputs.map(value => value.connections);
+            if (connsArray.length > 0) {
+                return connsArray.reduce((accumulator, value) => accumulator.concat(value));
+            }
+        }
+        return [];
     }
 
     public get allConnections(): Connection[] {
-        return this.allConnectors.map((value: Connector) => value.connections).reduce((accumulator, value) => accumulator.concat(value));
+        return this.inputConnections.concat(this.outputConnections);
     }
 
     public updateConnections(): void {
