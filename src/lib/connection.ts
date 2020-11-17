@@ -153,6 +153,10 @@ export class Connection implements IBlockDropItem {
         this.updateConnection(this._path, d);
     }
 
+    public get elem(): Element {
+        return this._path;
+    }
+
     public get startBlock(): Block | null {
         return this._startConnector.block;
     }

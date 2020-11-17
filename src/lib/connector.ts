@@ -82,6 +82,10 @@ export class Connector implements IBlockDropItem {
         
     }
 
+    public get elem(): Element {
+        return this._el;
+    }
+
     public get data(): unknown {
         return this._data;
     }

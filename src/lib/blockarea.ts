@@ -50,6 +50,10 @@ export class BlockArea implements IBlockDropItem {
         this.update();
     }
 
+    public get elem(): Element {
+        return this.el;
+    }
+
     public get mouseMove(): IEventTwo<BlockArea, BlockPoint> {
         return this._mouseMove.asEvent();
     }

@@ -93,6 +93,10 @@ export class Block implements IBlockDropItem {
         this._el.style.transform = `translate(${this._x}px, ${this._y}px)`;
     }
 
+    public get elem(): Element {
+        return this._el;
+    }
+
     public get data(): unknown {
         return this._data;
     }
