@@ -38,14 +38,15 @@ export class Connector implements IBlockDropItem {
     private _id: string;
 
     constructor(element: HTMLElement, area: BlockArea, options: IConnectorOptions) {
+        this._options = {...this._options, ...options};
         if (options.internalId) {
             this._id = options.internalId;
         } else {
             this._id = uuidv4();
+            this._options.internalId = this._id;
         }
         this._area = area;
         this._el = element;
-        this._options = {...this._options, ...options};
         this._data = options.data;
         this._el.classList.add(`connector-${this.internalId}`);
         this._el.classList.add(`connector`);

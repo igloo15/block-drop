@@ -38,6 +38,7 @@ export class Block implements IBlockDropItem {
             this._internalId = options.internalId;
         } else {
             this._internalId = uuidv4();
+            options.internalId = this._internalId;
         }
         this.id = options.id;
         this._el = element;
