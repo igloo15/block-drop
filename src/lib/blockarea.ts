@@ -194,6 +194,10 @@ export class BlockArea implements IBlockDropItem {
         return this;
     }
 
+    public getZoom(): number {
+        return this._transform.k;
+    }
+
     public zoom(zoom: number): BlockArea {
         this._transform.k = zoom;
         this.update();
