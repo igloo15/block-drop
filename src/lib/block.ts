@@ -27,22 +27,15 @@ export class Block implements IBlockDropItem {
     private _mouseDblClick = new TypedEventTwo<Block, BlockPoint>();
     private _destroyClick: () => void;
     private _destroyDblClick: () => void;
-    private _data: unknown;
-    private _internalId: string;
     private _dragAllowed = true;
-
-    public id: string;
+    private _options: IBlockOptions;
 
     constructor(element: HTMLElement, options: IBlockOptions) {
+        this._options = options;
         if(options.internalId) {
-            this._internalId = options.internalId;
-        } else {
-            this._internalId = uuidv4();
-            options.internalId = this._internalId;
+            this._options.internalId = uuidv4();
         }
-        this.id = options.id;
         this._el = element;
-        this._data = options.data;
         this._el.classList.add(`block-${this.internalId}`);
         this._el.classList.add(`block`);
         this._x = this._el.getBoundingClientRect().x;
@@ -93,12 +86,20 @@ export class Block implements IBlockDropItem {
         this._el.style.transform = `translate(${this._x}px, ${this._y}px)`;
     }
 
+    public get options(): IBlockOptions {
+        return this._options;
+    }
+
+    public get id(): string {
+        return this._options.id;
+    }
+
     public get elem(): Element {
         return this._el;
     }
 
     public get data(): unknown {
-        return this._data;
+        return this._options.data;
     }
 
     public get click(): IEventTwo<Block, BlockPoint> {
@@ -110,7 +111,10 @@ export class Block implements IBlockDropItem {
     }
 
     public get internalId(): string {
-        return this._internalId;
+        if (this._options.internalId) {
+            return this._options.internalId;
+        }
+        return '';
     }
 
     public get inputs(): Connector[] {
@@ -163,7 +167,7 @@ export class Block implements IBlockDropItem {
     }
 
     public getData<T>(): T {
-        return this._data as T;
+        return this._options.data as T;
     }
 
     public disableDragging(): Block {
