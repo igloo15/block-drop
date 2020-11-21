@@ -1,7 +1,7 @@
 import { Block } from "./block";
 import { BlockArea } from "./blockarea";
 import { Connection } from "./connection";
-import { IEventTwo, TypedEvent, TypedEventTwo } from "./events";
+import { IEventTwo, TypedEventTwo } from "./events";
 import { IBlockDropItem } from "./interfaces";
 import { BlockPoint } from "./models";
 import { listenEvent, uuidv4 } from "./utils";

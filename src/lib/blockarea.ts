@@ -18,7 +18,8 @@ export class BlockArea implements IBlockDropItem {
     
     private _start: BlockPoint | null = null;
     private _transform: Transform = { k: 1, x: 0, y: 0 };
-    private _options: BlockAreaOptions;
+    private _zoom: Zoom;
+    private _options: BlockAreaOptions = new BlockAreaOptions();
 
     private _mouseMove = new TypedEventTwo<BlockArea, BlockPoint>();
     private _mouseUp = new TypedEventTwo<BlockArea, BlockPoint>();
@@ -38,19 +39,14 @@ export class BlockArea implements IBlockDropItem {
         this._id = uuidv4();
         this.el = el;
         this.parentEl = parentEl;
-        this._options = new BlockAreaOptions(options);
-        this._eventMap = new HTMLEventManager(this.el);
+        this.el.style.transformOrigin = '0 0';
         this.el.classList.add(`area-${this.internalId}`);
         this.el.classList.add(`area`);
-        if (this._options.gridBackground) {
-            this.el.classList.add('grid');
-        }        
-        this.el.style.width = `${this._options.widthMax}px`;
-        this.el.style.height = `${this._options.heightMax}px`;
-        this.el.style.transformOrigin = '0 0';
+        this._eventMap = new HTMLEventManager(this.el);
+        
         const destroyMove = listenEvent(this.parentEl, 'pointermove', this.onMove.bind(this));
         const destroyUp = listenEvent(this.parentEl, 'pointerup', this.pointerUp.bind(this));
-        const zoom = new Zoom(this.el, this.parentEl as HTMLElement, this.onZoom.bind(this), this._options.zoomInterval);
+        this._zoom = new Zoom(this.el, this.parentEl as HTMLElement, this.onZoom.bind(this));
         const drag = new Drag(this.parentEl as HTMLElement, this.onTranslate.bind(this), this.onSelect.bind(this));
         const destroyClick = this._eventMap.addListener(`.area-${this.internalId}`, 'click', (e: MouseEvent) => {
             const { clientX, clientY } = e;
@@ -72,15 +68,11 @@ export class BlockArea implements IBlockDropItem {
             destroyClick(); 
             destroyDblClick(); 
             destroyRightClick(); 
-            zoom.destroy(); 
+            this._zoom.destroy(); 
             drag.destroy(); 
         };
 
-        this.move(this.options.loc.x, this.options.loc.y);
-        this.zoom(this.options.zoom);
-        
-
-        this.update();
+        this.updateOptions(options);
     }
 
     public get elem(): Element {
@@ -218,6 +210,24 @@ export class BlockArea implements IBlockDropItem {
             }
         }
         return { valid: true };
+    }
+
+    public updateOptions(options?: IBlockAreaOptions): BlockArea {
+        this._options = new BlockAreaOptions(options);
+        if (this._options.gridBackground) {
+            if (!this.el.classList.contains('grid')) {
+                this.el.classList.add('grid');
+            }
+        } else {
+            this.el.classList.remove('grid');
+        }        
+        this.el.style.width = `${this._options.widthMax}px`;
+        this.el.style.height = `${this._options.heightMax}px`;
+        this._zoom.updateZoomInterval(this._options.zoomInterval);
+        this.move(this.options.loc.x, this.options.loc.y);
+        this.zoom(this.options.zoom);
+        this.update();
+        return this;
     }
 
     public createId(): string {

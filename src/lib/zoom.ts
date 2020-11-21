@@ -35,4 +35,8 @@ export class Zoom {
 
         this._onZoom(delta, ox, oy);
     }
+
+    public updateZoomInterval(zoomInterval: number): void {
+        this._zoomInterval = zoomInterval;
+    }
 }
