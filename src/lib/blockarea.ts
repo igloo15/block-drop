@@ -13,18 +13,24 @@ export class BlockArea implements IBlockDropItem {
     public el: HTMLElement;
     public parentEl: HTMLElement;
     public activeConnection!: Connection | null;
+    public readonly itemType = 'BlockArea';
     public destroy: (() => void);
     
     private _start: BlockPoint | null = null;
-    private _zoom: Zoom;
-    private _drag: Drag;
     private _transform: Transform = { k: 1, x: 0, y: 0 };
     private _options: BlockAreaOptions;
 
     private _mouseMove = new TypedEventTwo<BlockArea, BlockPoint>();
     private _mouseUp = new TypedEventTwo<BlockArea, BlockPoint>();
+    private _click = new TypedEventTwo<BlockArea, BlockPoint>();
+    private _dblClick = new TypedEventTwo<BlockArea, BlockPoint>();
+    private _rightClick = new TypedEventTwo<BlockArea, MouseEvent>();
     private _connectionValidation = new TypedEventTwo<BlockArea, ConnectionValidationResult>();
     private _connectionCreated = new TypedEventOne<Connection>();
+    private _globalClick = new TypedEventTwo<IBlockDropItem, BlockPoint>();
+    private _globalDoubleClick = new TypedEventTwo<IBlockDropItem, BlockPoint>();
+    private _globalRightClick = new TypedEventTwo<IBlockDropItem, MouseEvent>();
+
     private _id: string;
     private _eventMap: HTMLEventManager;
     
@@ -38,15 +44,42 @@ export class BlockArea implements IBlockDropItem {
         this.el.classList.add(`area`);
         if (this._options.gridBackground) {
             this.el.classList.add('grid');
-        }
+        }        
         this.el.style.width = `${this._options.widthMax}px`;
         this.el.style.height = `${this._options.heightMax}px`;
         this.el.style.transformOrigin = '0 0';
         const destroyMove = listenEvent(this.parentEl, 'pointermove', this.onMove.bind(this));
         const destroyUp = listenEvent(this.parentEl, 'pointerup', this.pointerUp.bind(this));
-        this._zoom = new Zoom(this.el, this.parentEl as HTMLElement, this.onZoom.bind(this), this._options.zoomInterval);
-        this._drag = new Drag(this.parentEl as HTMLElement, this.onTranslate.bind(this), this.onSelect.bind(this));
-        this.destroy = () => { destroyMove(); destroyUp(); }
+        const zoom = new Zoom(this.el, this.parentEl as HTMLElement, this.onZoom.bind(this), this._options.zoomInterval);
+        const drag = new Drag(this.parentEl as HTMLElement, this.onTranslate.bind(this), this.onSelect.bind(this));
+        const destroyClick = this._eventMap.addListener(`.area-${this.internalId}`, 'click', (e: MouseEvent) => {
+            const { clientX, clientY } = e;
+            this._click.nextAsync(this, {x: clientX, y: clientY});
+            this._globalClick.nextAsync(this, {x: clientX, y: clientY});
+        });
+        const destroyDblClick = this._eventMap.addListener(`.area-${this.internalId}`, 'dblclick', (e: MouseEvent) => {
+            const { clientX, clientY } = e;
+            this._dblClick.nextAsync(this, {x: clientX, y: clientY});
+            this._globalDoubleClick.nextAsync(this, {x: clientX, y: clientY});
+        });
+        const destroyRightClick = this._eventMap.addListener(`.area-${this.internalId}`, 'contextmenu', (e: MouseEvent) => {
+            this._rightClick.nextAsync(this, e);
+            this._globalRightClick.nextAsync(this, e);
+        });
+        this.destroy = () => { 
+            destroyMove(); 
+            destroyUp(); 
+            destroyClick(); 
+            destroyDblClick(); 
+            destroyRightClick(); 
+            zoom.destroy(); 
+            drag.destroy(); 
+        };
+
+        this.move(this.options.loc.x, this.options.loc.y);
+        this.zoom(this.options.zoom);
+        
+
         this.update();
     }
 
@@ -56,8 +89,8 @@ export class BlockArea implements IBlockDropItem {
 
     public get position(): BlockPoint {
         return {
-            x: this._transform.x,
-            y: this._transform.y
+            x: this._transform.x * -1,
+            y: this._transform.y * -1
         };
     }
 
@@ -75,6 +108,30 @@ export class BlockArea implements IBlockDropItem {
 
     public get connectionValidation(): IEventTwo<BlockArea, ConnectionValidationResult> {
         return this._connectionValidation.asEvent();
+    }
+
+    public get click(): IEventTwo<BlockArea, BlockPoint> {
+        return this._click.asEvent();
+    }
+
+    public get dblClick(): IEventTwo<BlockArea, BlockPoint> {
+        return this._dblClick.asEvent();
+    }
+
+    public get rightClick(): IEventTwo<BlockArea, MouseEvent> {
+        return this._rightClick.asEvent();
+    }
+
+    public get globalClick(): IEventTwo<IBlockDropItem, BlockPoint> {
+        return this._globalClick.asEvent();
+    }
+
+    public get globalDblClick(): IEventTwo<IBlockDropItem, BlockPoint> {
+        return this._globalDoubleClick.asEvent();
+    }
+
+    public get globalRightClick(): IEventTwo<IBlockDropItem, MouseEvent> {
+        return this._globalRightClick.asEvent();
     }
 
     public get options(): BlockAreaOptions {
@@ -244,8 +301,6 @@ export class BlockArea implements IBlockDropItem {
 
     public delete(removeElements = false): void {
         this.destroy();
-        this._drag.destroy();
-        this._zoom.destroy();
         if (removeElements) {
             this.parentEl.removeChild(this.el);
         }
@@ -255,4 +310,16 @@ export class BlockArea implements IBlockDropItem {
         return this._eventMap.addListener(id, event, handler);
     }
     
+
+    public triggerGlobalClick(item: IBlockDropItem, point: BlockPoint): void {
+        this._globalClick.nextAsync(item, point);
+    }
+
+    public triggerGlobalDblClick(item: IBlockDropItem, point: BlockPoint): void {
+        this._globalDoubleClick.nextAsync(item, point);
+    }
+
+    public triggerGlobalRightClick(item: IBlockDropItem, point: MouseEvent): void {
+        this._globalRightClick.nextAsync(item, point);
+    }
 }

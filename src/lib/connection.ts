@@ -1,12 +1,14 @@
 import { Block } from "./block";
 import { BlockArea } from "./blockarea";
 import { Connector } from "./connector";
-import { IEventOne, ISubscription, TypedEventOne } from "./events";
+import { IEventOne, IEventTwo, ISubscription, TypedEventOne, TypedEventTwo } from "./events";
 import { IBlockDropItem } from "./interfaces";
 import { BlockPoint } from "./models";
 import { uuidv4 } from "./utils";
 
 export class Connection implements IBlockDropItem {
+
+    public readonly itemType = 'Connection';
 
     private _path!: SVGPathElement;
     private _containerElem!: HTMLElement;
@@ -22,6 +24,7 @@ export class Connection implements IBlockDropItem {
     private _id: string;
     private _clickedEvent: TypedEventOne<Connection> = new TypedEventOne<Connection>();
     private _dblClickedEvent: TypedEventOne<Connection> = new TypedEventOne<Connection>();
+    private _rightClickEvent: TypedEventTwo<Connection, MouseEvent> = new TypedEventTwo<Connection, MouseEvent>();
 
     constructor(parent: BlockArea, startConnector: Connector, initialPoint: BlockPoint) {
         this._id = uuidv4();
@@ -29,7 +32,9 @@ export class Connection implements IBlockDropItem {
         this._startConnector = startConnector;
         this._moveSubscription = this._parent.mouseMove.subscribe((area: BlockArea, e: BlockPoint) => {
             const currPos = this.getStartPosition();
-            const renderedPath = this.renderPath([e.x, e.y, currPos.x, currPos.y], 0.4);
+            const x = e.x + this._parent.options.connectionMouseOffset.x;
+            const y = e.y + this._parent.options.connectionMouseOffset.y;
+            const renderedPath = this.renderPath([x, y, currPos.x, currPos.y], 0.4);
             this.updateConnection(this._path, renderedPath);
         });
         this._upSubscription = this._parent.mouseUp.subscribe(() => {
@@ -78,13 +83,6 @@ export class Connection implements IBlockDropItem {
         const [x1, y1, x2, y2] = points;
         //endpoint
         let hx1 = -1;
-        // if (this._endConnector?.options.alternateConnCurve) {
-        //     hx1 = ((x1 - 50) - Math.abs(x2 - x1) * curvature);
-        // } else if (this._parent.options.connectionAlternative) {
-        //     hx1 = ((x1 - 50) - Math.abs(x2 - x1) * curvature);
-        // } else {
-        //     hx1 = ((x1 + 100) + Math.abs(x2 - x1) * curvature);
-        // }
 
         if (this._endConnector?.options.alternateConnCurve) {
             hx1 = ((x1 + 100) + Math.abs(x2 - x1) * curvature);
@@ -97,11 +95,6 @@ export class Connection implements IBlockDropItem {
         
         //startpoint
         let hx2 = -1;
-        // if (!this._startConnector.options.alternateConnCurve) {
-        //     hx2 = ((x2 - 100) - Math.abs(x2 - x1) * curvature);
-        // } else {
-        //     hx2 = ((x2 + 50) + Math.abs(x2 - x1) * curvature);
-        // }
         if (!this._startConnector.options.alternateConnCurve) {
             hx2 = ((x2 + 50) + Math.abs(x2 - x1) * curvature);
         } else {
@@ -132,17 +125,22 @@ export class Connection implements IBlockDropItem {
         this._path.setAttribute('marker-mid', `url(#path-${this.internalId}-mid)`);
         this._path.setAttribute('marker-start', `url(#path-${this.internalId}-start)`);
 
-        const destroyClick = this._parent.addListener(`.conn-${this.internalId}-path`, 'click', () => {
-            console.log('click');
+        const destroyClick = this._parent.addListener(`.conn-${this.internalId}-path`, 'click', (e: MouseEvent) => {
             this._clickedEvent.nextAsync(this); 
+            this._parent.triggerGlobalClick(this, {x: e.clientX, y: e.clientY});
         });
 
-        const destroyDblClick = this._parent.addListener(`.conn-${this.internalId}-path`, 'dblclick', () => {
-            console.log('dblClick');
+        const destroyDblClick = this._parent.addListener(`.conn-${this.internalId}-path`, 'dblclick', (e: MouseEvent) => {
             this._dblClickedEvent.nextAsync(this); 
+            this._parent.triggerGlobalDblClick(this, {x: e.clientX, y: e.clientY});
         });
 
-        this._destroy = () => { destroyClick(); destroyDblClick(); };
+        const destroyRightClick = this._parent.addListener(`.conn-${this.internalId}-path`, 'contextmenu', (e: MouseEvent) => {
+            this._rightClickEvent.nextAsync(this, e);
+            this._parent.triggerGlobalRightClick(this, e);
+        });
+
+        this._destroy = () => { destroyClick(); destroyDblClick(); destroyRightClick(); };
 
         svg.appendChild(defs);
         svg.appendChild(this._path);
@@ -194,6 +192,10 @@ export class Connection implements IBlockDropItem {
 
     public get dblClickEvent(): IEventOne<Connection> {
         return this._dblClickedEvent.asEvent();
+    }
+
+    public get rightClickEvent(): IEventTwo<Connection, MouseEvent> {
+        return this._rightClickEvent.asEvent();
     }
 
     public getPointOnLine(percentage: number): BlockPoint {

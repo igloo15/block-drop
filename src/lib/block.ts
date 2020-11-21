@@ -8,13 +8,15 @@ import { IEventTwo, TypedEventTwo } from './events';
 import { IBlockDropItem } from './interfaces';
 
 export interface IBlockOptions {
-    id: string;
     loc?: BlockPoint;
     data?: unknown;
     internalId?: string;
 }
 
 export class Block implements IBlockDropItem {
+    public readonly itemType = 'Block';
+
+    private _area: BlockArea | undefined = undefined;
     private _connected = false;
     private _el: HTMLElement;
     private _x: number;
@@ -25,16 +27,19 @@ export class Block implements IBlockDropItem {
     private _outputs: Connector[] = [];
     private _mouseClick = new TypedEventTwo<Block, BlockPoint>();
     private _mouseDblClick = new TypedEventTwo<Block, BlockPoint>();
-    private _destroyClick: () => void;
-    private _destroyDblClick: () => void;
+    private _mouseRightClick = new TypedEventTwo<Block, MouseEvent>();
+    private _destroy: (() => void);
     private _dragAllowed = true;
     private _options: IBlockOptions;
 
-    constructor(element: HTMLElement, options: IBlockOptions) {
+    
+
+    constructor(element: HTMLElement, options: IBlockOptions, area?: BlockArea) {
         this._options = options;
-        if(options.internalId) {
+        if(!options.internalId || options.internalId === '') {
             this._options.internalId = uuidv4();
         }
+        this._area = area;
         this._el = element;
         this._el.classList.add(`block-${this.internalId}`);
         this._el.classList.add(`block`);
@@ -42,8 +47,20 @@ export class Block implements IBlockDropItem {
         this._y = this._el.getBoundingClientRect().y;
         this._start = { x: this._x, y: this._y };
         this._dragger = new Drag(this._el, this.onTranslate.bind(this), this.onSelect.bind(this));
-        this._destroyClick = listenEvent(this._el, 'click', this.onClick.bind(this));
-        this._destroyDblClick = listenEvent(this._el, 'dblclick', this.onDblClick.bind(this));
+        let destroyClick: () => void;
+        let destroyDblClick: () => void;
+        let destroyRightClick: () => void;
+        if (!this._area) {
+            destroyClick = listenEvent(this._el, 'click', this.onClick.bind(this));
+            destroyDblClick = listenEvent(this._el, 'dblclick', this.onDblClick.bind(this));
+            destroyRightClick = listenEvent(this._el, 'contextmenu', this.onRightClick.bind(this));
+        } else {
+            destroyClick = this._area.addListener(`.block-${this.internalId}`, 'click', (e) => this.onClick(e));
+            destroyDblClick = this._area.addListener(`.block-${this.internalId}`, 'dblclick', (e) => this.onDblClick(e));
+            destroyRightClick = this._area.addListener(`.block-${this.internalId}`, 'contextmenu', (e) => this.onRightClick(e));
+        }
+        
+        this._destroy = () => { destroyDblClick(); destroyClick(); this._dragger.destroy(); destroyRightClick(); };
 
         if (options.loc) {
             this.move(options.loc.x, options.loc.y);
@@ -51,11 +68,20 @@ export class Block implements IBlockDropItem {
     }
 
     private onClick(e: MouseEvent) {
-        this._mouseClick.next(this, {x: e.x, y: e.y});
+        this._mouseClick.nextAsync(this, {x: e.x, y: e.y});
+        if (this._area) {
+            this._area.triggerGlobalClick(this, {x: e.x, y: e.y})
+        }
     }
 
     private onDblClick(e: MouseEvent) {
-        this._mouseDblClick.next(this, {x: e.x, y: e.y});
+        this._mouseDblClick.nextAsync(this, {x: e.x, y: e.y});
+        this._area?.triggerGlobalDblClick(this, {x: e.x, y: e.y});
+    }
+
+    private onRightClick(e: MouseEvent) {
+        this._mouseRightClick.nextAsync(this, e);
+        this._area?.triggerGlobalRightClick(this, e);
     }
 
     private onSelect() {
@@ -73,6 +99,15 @@ export class Block implements IBlockDropItem {
         this._x = this._start.x + x;
         this._y = this._start.y + y;
 
+        this.updateAll();
+    }
+
+    private update() {
+        this._el.style.transform = `translate(${this._x}px, ${this._y}px)`;
+    }
+
+
+    private updateAll() {
         this.update();
         this._outputs.forEach(o => {
             o.update();
@@ -81,17 +116,8 @@ export class Block implements IBlockDropItem {
             o.update();
         });
     }
-
-    private update() {
-        this._el.style.transform = `translate(${this._x}px, ${this._y}px)`;
-    }
-
     public get options(): IBlockOptions {
         return this._options;
-    }
-
-    public get id(): string {
-        return this._options.id;
     }
 
     public get elem(): Element {
@@ -110,11 +136,16 @@ export class Block implements IBlockDropItem {
         return this._mouseDblClick.asEvent();
     }
 
+    public get rightClick(): IEventTwo<Block, MouseEvent> {
+        return this._mouseRightClick.asEvent();
+    }
+
     public get internalId(): string {
-        if (this._options.internalId) {
-            return this._options.internalId;
+        if(!this._options.internalId) {
+            throw new Error('No Internal Id set');
         }
-        return '';
+        
+        return this._options.internalId;
     }
 
     public get inputs(): Connector[] {
@@ -181,7 +212,12 @@ export class Block implements IBlockDropItem {
     }
 
     public move(x: number, y: number): Block {
-        this.onTranslate(x, y);
+        // const zoom = this._el.getBoundingClientRect().width / this._el.offsetWidth;
+        // this.onTranslate(x / zoom, y / zoom);
+        //this.onTranslate(x, y);
+        this._x = x;
+        this._y = y;
+        this.updateAll();
         return this;
     }
 
@@ -193,6 +229,9 @@ export class Block implements IBlockDropItem {
     }
 
     public addInput(connector: Connector): Block {
+        if (!this._area) {
+            this._area = connector.getArea();
+        }
         connector.setBlockParent(this);
         this._inputs.push(connector);
         return this;
@@ -268,9 +307,7 @@ export class Block implements IBlockDropItem {
     }
 
     public delete(removeElement = false): void {
-        this._destroyClick();
-        this._destroyDblClick();
-        this._dragger.destroy();
+        this._destroy();
         if (removeElement) {
             if (this._el.parentElement) {
                 this._el.parentElement.removeChild(this._el);

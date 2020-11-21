@@ -4,8 +4,8 @@ import { Block,  BlockArea, Connection, Connector } from './lib/index';
 const area = <HTMLElement>document.querySelector('#block-area');
 
 const areaParent = <HTMLElement>document.querySelector('#block-area-container');
-
-const newArea = new BlockArea(area, areaParent, { connectionAlternative: false, lockToArea: true, zoomInterval: 0.02, gridBackground: false, renderConnectionFunction: (conn, svg, path, defs) => {
+// zoom: 1.62, loc: {x: 751, y: 999},
+const newArea = new BlockArea(area, areaParent, { zoom: 1.62, loc: {x: 503, y: 701}, connectionMouseOffset: { x: -15, y: 0}, connectionAlternative: false, lockToArea: true, zoomInterval: 0.1, gridBackground: true, renderConnectionFunction: (conn, svg, path, defs) => {
     const arrowMarkerStart = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
     arrowMarkerStart.id = `path-${conn.internalId}-start`;
     arrowMarkerStart.setAttribute('markerWidth', '12');
@@ -32,13 +32,24 @@ const newArea = new BlockArea(area, areaParent, { connectionAlternative: false, 
 
 } });
 
+newArea.click.subscribe(v => {
+    console.log('area clicked');
+});
+
+newArea.globalClick.subscribe(v => {
+    console.log(v);
+    if(v instanceof Block) {
+        console.log('InstanceOf Block');
+    }
+})
+
 const item1 = <HTMLElement>document.querySelector('#item-1');
 
 const conn1 = <HTMLElement>document.querySelector('.input');
 
 const myConn1 = new Connector(conn1, newArea, {  });
 
-const newNode1 = new Block(item1, {id: 'item1'}).addOutput(myConn1);
+const newNode1 = new Block(item1, {}, newArea).addOutput(myConn1);
 
 console.log(item1);
 
@@ -46,7 +57,13 @@ const item2 = <HTMLElement>document.querySelector('#item-2');
 
 const conn2 = <HTMLElement>document.querySelector('#output-1');
 
-const newNode2 = new Block(item2, {id: 'item2'}).addInputElements(newArea, [conn2], { anchorPointOffset: {x: -23, y: 0 } } );
+const newNode2 = new Block(item2, {}, newArea).addInputElements(newArea, [conn2], { anchorPointOffset: {x: -23, y: 0 } } );
+
+newNode2.rightClick.subscribe((v, t) => {
+    t.stopPropagation();
+    t.preventDefault();
+    console.log(`Right Click ${v.internalId} at ${t}`);
+})
 
 const newConnector = document.createElement('div');
 
@@ -89,14 +106,20 @@ console.log(newNode2);
 setTimeout(() => {
     newNode1.move(500, 900);
     newNode2.move(900, 500);
-    Connection.createConnection(newArea, newNode1.outputs[0], newNode2.inputs[0]);
+    // Connection.createConnection(newArea, newNode1.outputs[0], newNode2.inputs[0]);
     // newArea.move(500, 900);
     // newArea.resetZoom();
+    console.log(newArea.position);
+    console.log(newArea.getZoom());
 }, 3000);
 
 setTimeout(() => {
     //newNode2.outputs[0].delete(true, true);
     // newArea.zoom(0.6);
+    console.log(newArea.position);
+    console.log(newArea.getZoom());
+    console.log(newNode1.getPosition());
+    console.log(newNode2.getPosition());
 }, 12000);
 
 setTimeout(() => {

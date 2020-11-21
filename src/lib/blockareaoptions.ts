@@ -42,6 +42,9 @@ export type PathRenderFunction = (
 export type AlterAnchorPointFunction = (connector: Connector, point: BlockPoint | undefined) => BlockPoint | undefined;
 
 export interface IBlockAreaOptions {
+    loc?: BlockPoint;
+    zoom?: number;
+
     zoomMin?: number;
     zoomMax?: number;
     zoomInterval?: number;
@@ -57,6 +60,7 @@ export interface IBlockAreaOptions {
     pathCurvature?: number;
     patchStyleClass?: string;
     connectionAlternative?: boolean;
+    connectionMouseOffset?: BlockPoint;
 
     renderPathFunction?: PathRenderFunction;
     renderConnectionFunction?: ConnectionRenderFunction;
@@ -66,6 +70,9 @@ export interface IBlockAreaOptions {
 }
 
 export class BlockAreaOptions {
+    public loc: BlockPoint = { x: 0, y: 0};
+    public zoom = 1;
+
     public zoomMin = 0.52;
     public zoomMax = 2;
     public zoomInterval = 0.1;
@@ -81,6 +88,7 @@ export class BlockAreaOptions {
     public pathCurvature = 0.4;
     public pathStyleClass = 'main-path';
     public connectionAlternative = false;
+    public connectionMouseOffset: BlockPoint = {x: 0, y: 0};
     
     public renderPathFunction: PathRenderFunction = (value: string) => value;
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -91,6 +99,8 @@ export class BlockAreaOptions {
 
     constructor(options?: IBlockAreaOptions) {
         if (options) {
+            this.loc = options.loc ?? this.loc;
+            this.zoom = options.zoom ?? this.zoom;
             this.zoomMin = options.zoomMin ?? this.zoomMin;
             this.zoomMax = options.zoomMax ?? this.zoomMax;
             this.zoomInterval = options.zoomInterval ?? this.zoomInterval;
@@ -103,6 +113,7 @@ export class BlockAreaOptions {
             this.pathCurvature = options.pathCurvature ?? this.pathCurvature;
             this.pathStyleClass = options.patchStyleClass ?? this.pathStyleClass;
             this.connectionAlternative = options.connectionAlternative ?? this.connectionAlternative;
+            this.connectionMouseOffset = options.connectionMouseOffset ?? this.connectionMouseOffset;
             this.renderPathFunction = options.renderPathFunction ?? this.renderPathFunction;
             this.renderConnectionFunction = options.renderConnectionFunction ?? this.renderConnectionFunction;
             this.alterAnchorPointFunction = options.alterAnchorPointFunction ?? this.alterAnchorPointFunction;

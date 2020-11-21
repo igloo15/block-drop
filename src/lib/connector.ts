@@ -16,6 +16,8 @@ export interface IConnectorOptions {
 }
 
 export class Connector implements IBlockDropItem {
+    public readonly itemType = 'Connector';
+
     private _connected = false;
     private _area: BlockArea;
     private _parent: Block | null = null;
@@ -34,16 +36,14 @@ export class Connector implements IBlockDropItem {
     private _connectionCompleted = new TypedEventTwo<Connector, Connection>();
     private _connectionRemoved = new TypedEventTwo<Connector, Connection>();
     private _hoverOver = new TypedEventTwo<Connector, Connection | null>();
-
-    private _id: string;
+    private _click = new TypedEventTwo<Connector, BlockPoint>();
+    private _dblClick = new TypedEventTwo<Connector, BlockPoint>();
+    private _rightClick = new TypedEventTwo<Connector, MouseEvent>();
 
     constructor(element: HTMLElement, area: BlockArea, options: IConnectorOptions) {
         this._options = {...this._options, ...options};
-        if (options.internalId) {
-            this._id = options.internalId;
-        } else {
-            this._id = uuidv4();
-            this._options.internalId = this._id;
+        if (!this._options.internalId || this._options.internalId === '') {
+            this._options.internalId = uuidv4();
         }
         this._area = area;
         this._el = element;
@@ -78,7 +78,24 @@ export class Connector implements IBlockDropItem {
             this._hoverOver.nextAsync(this, this._area.activeConnection);
         });
 
-        this._destroy = () => { destroyHover(); destroyUp(); destroyDown(); }
+        const destroyClick = this._area.addListener(`.connector-${this.internalId}`, 'click', (e: MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this._click.nextAsync(this, {x: e.clientX, y: e.clientY});
+            this._area.triggerGlobalClick(this, {x: e.clientX, y: e.clientY});
+        });
+
+        const destroyDblClick = this._area.addListener(`.connector-${this.internalId}`, 'dblclick', (e: MouseEvent) => {
+            this._dblClick.nextAsync(this, {x: e.clientX, y: e.clientY});
+            this._area.triggerGlobalDblClick(this, {x: e.clientX, y: e.clientY});
+        });
+
+        const destroyRightClick = this._area.addListener(`.connector-${this.internalId}`, 'contextmenu', (e: MouseEvent) => {
+            this._rightClick.nextAsync(this, e);
+            this._area.triggerGlobalRightClick(this, e);
+        });
+
+        this._destroy = () => { destroyHover(); destroyUp(); destroyDown(); destroyClick(); destroyDblClick(); destroyRightClick(); }
         
     }
 
@@ -130,12 +147,23 @@ export class Connector implements IBlockDropItem {
         return this._hoverOver.asEvent();
     }
 
-    public get id(): string {
-        return this._id;
+    public get click(): IEventTwo<Connector, BlockPoint> {
+        return this._click.asEvent();
+    }
+
+    public get dblClick(): IEventTwo<Connector, BlockPoint> {
+        return this._dblClick.asEvent();
+    }
+
+    public get rightClick(): IEventTwo<Connector, MouseEvent> {
+        return this._rightClick.asEvent();
     }
 
     public get internalId(): string {
-        return this.id;
+        if (!this._options.internalId) {
+            throw new Error('Blank Internal Id');
+        }
+        return this._options.internalId;
     }
 
     private startConnection(mouseEvent: PointerEvent) {
@@ -163,6 +191,10 @@ export class Connector implements IBlockDropItem {
     public setBlockParent(block: Block): Connector {
         this._parent = block;
         return this;
+    }
+
+    public getArea(): BlockArea {
+        return this._area;
     }
 
     public complete(conn: Connection): Connector {
