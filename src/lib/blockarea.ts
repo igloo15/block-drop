@@ -213,7 +213,7 @@ export class BlockArea implements IBlockDropItem {
     }
 
     public updateOptions(options?: IBlockAreaOptions): BlockArea {
-        this._options = new BlockAreaOptions(options);
+        this._options = {...new BlockAreaOptions(), ...options};
         if (this._options.gridBackground) {
             if (!this.el.classList.contains('grid')) {
                 this.el.classList.add('grid');
