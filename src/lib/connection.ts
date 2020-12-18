@@ -145,7 +145,7 @@ export class Connection implements IBlockDropItem {
         svg.appendChild(defs);
         svg.appendChild(this._path);
         this._containerElem.appendChild(svg);
-        this._parent.el.appendChild(this._containerElem);
+        this._parent.elem.appendChild(this._containerElem);
         
         this._parent.options.renderConnectionFunction(this, svg, this._path, defs);
         this.updateConnection(this._path, d);
@@ -210,7 +210,7 @@ export class Connection implements IBlockDropItem {
     public delete(): void {
         this.unsubscribe();
         this._destroy();
-        this._parent.el.removeChild(this._containerElem);
+        this._parent.elem.removeChild(this._containerElem);
         this.startConnector.removeConnection(this);
         this.endConnector?.removeConnection(this);
     }

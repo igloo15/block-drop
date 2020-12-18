@@ -214,9 +214,11 @@ export class Connector implements IBlockDropItem {
     public delete(removeConnections = true, removeElement = false): void {
         this._destroy();
         if (removeConnections) {
-            this._connections.forEach(conn => {
+            const connections: Connection[] = Object.assign([], this._connections);
+            connections.forEach(conn => {
                 conn.delete();
-            })
+                this.removeConnection(conn);
+            });
         }
         if (removeElement) {
             const parentElem = this._el.parentElement;

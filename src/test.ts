@@ -57,7 +57,9 @@ const item2 = <HTMLElement>document.querySelector('#item-2');
 
 const conn2 = <HTMLElement>document.querySelector('#output-1');
 
-const newNode2 = new Block(item2, {}, newArea).addInputElements(newArea, [conn2], { anchorPointOffset: {x: -23, y: 0 } } );
+const conn3 = <HTMLElement>document.querySelector('#output-2');
+
+const newNode2 = new Block(item2, {}, newArea).addInputElements(newArea, [conn2, conn3], { anchorPointOffset: {x: -23, y: 0 } } );
 
 newNode2.rightClick.subscribe((v, t) => {
     t.stopPropagation();
@@ -130,4 +132,9 @@ setTimeout(() => {
 
     //newArea.resetZoom();
     //newArea.resetDrag();
+    
 }, 15000);
+
+setTimeout(() => {
+    newNode1.delete(true);
+}, 20000);

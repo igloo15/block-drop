@@ -296,7 +296,8 @@ export class Block implements IBlockDropItem {
     }
 
     public removeAllInputs(removeElement = false): Block {
-        this._inputs.forEach(conn => {
+        const inputs = Object.assign([], this._inputs);
+        inputs.forEach(conn => {
             this.removeConnector(conn, removeElement);
         });
 
@@ -304,7 +305,8 @@ export class Block implements IBlockDropItem {
     }
 
     public removeAllOutputs(removeElement = false): Block {
-        this._outputs.forEach(conn => {
+        const outputs = Object.assign([], this._outputs);
+        outputs.forEach(conn => {
             this.removeConnector(conn, removeElement);
         });
 
@@ -313,8 +315,8 @@ export class Block implements IBlockDropItem {
 
     public delete(removeConnectors = false, removeElement = false): void {
         if (removeConnectors) {
-            this._inputs.forEach(i => i.delete());
-            this._outputs.forEach(o => o.delete());
+            this.removeAllInputs();
+            this.removeAllOutputs();
         }
         this._destroy();
         if (removeElement) {

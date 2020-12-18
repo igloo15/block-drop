@@ -24,9 +24,29 @@ body {
   background-color:white;
 }
 
+.connector2 {
+  position: relative;
+  top: 90px;
+  border: 1px solid black;
+  width: 30px;
+  height: 30px;
+  background-color:white;
+}
+
 .input {
   position: relative;
   top:50px;
+  left: 168px;
+  border: 1px solid black;
+  width: 30px;
+  height: 30px;
+  background-color:white;
+  z-index: 2;
+}
+
+.input2 {
+  position: relative;
+  top:90px;
   left: 168px;
   border: 1px solid black;
   width: 30px;
