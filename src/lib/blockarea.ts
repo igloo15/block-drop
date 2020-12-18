@@ -419,14 +419,17 @@ export class BlockArea implements IBlockDropItem {
     public endConnection(connector: Connector): void {
         if (this.activeConnection) {
             const conn = this.activeConnection;
-            this.activeConnection = null;
+            
             const startConnector = conn.startConnector;
             const endConnector = connector;
             const result = this.validConnection(startConnector, endConnector);
             if(result.valid) {
                 conn.complete(connector);
                 this._connectionCreated.next(conn);
+            } else {
+                this.cancelConnection();
             }
+            this.activeConnection = null;
             this._connectionValidation.next(this, { status: result.valid, validator: result.validator, start: startConnector, end: endConnector});
         }
     }

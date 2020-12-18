@@ -14,6 +14,10 @@ export interface IBlockOptions {
 }
 
 export class Block implements IBlockDropItem {
+
+    /**
+     * The IBlockDropItem type
+     */
     public readonly itemType = 'Block';
 
     private _area: BlockArea | undefined = undefined;
@@ -116,6 +120,7 @@ export class Block implements IBlockDropItem {
             o.update();
         });
     }
+
     public get options(): IBlockOptions {
         return this._options;
     }
@@ -306,7 +311,11 @@ export class Block implements IBlockDropItem {
         return this;
     }
 
-    public delete(removeElement = false): void {
+    public delete(removeConnectors = false, removeElement = false): void {
+        if (removeConnectors) {
+            this._inputs.forEach(i => i.delete());
+            this._outputs.forEach(o => o.delete());
+        }
         this._destroy();
         if (removeElement) {
             if (this._el.parentElement) {
